@@ -15,6 +15,8 @@ export interface GestureState {
 }
 
 const SWIPE_PX = 18;
+/** extra horizontal distance per additional lane while dragging without lifting */
+const DRAG_PX = 46;
 const SWIPE_MS = 350;
 const HOLD_MS = 140;
 
@@ -30,6 +32,7 @@ export class Input {
   private startY = 0;
   private startT = 0;
   private swiped = false;
+  private dragged = false;
   private activeId = -1;
   private keyHold = false;
   onPointer: ((ev: PointerEv) => void) | null = null;
@@ -76,6 +79,7 @@ export class Input {
     this.activeId = e.pointerId;
     this.startX = ev.x; this.startY = ev.y; this.startT = ev.t;
     this.swiped = false;
+    this.dragged = false;
     this.guarded = this.gestureGuard ? this.gestureGuard(ev.x, ev.y) : false;
     this.g.down = true; this.g.x = ev.x; this.g.y = ev.y; this.g.holdTime = 0;
   }
@@ -87,12 +91,13 @@ export class Input {
     this.g.x = ev.x; this.g.y = ev.y;
     if (this.guarded || this.swiped) return;
     const dx = ev.x - this.startX, dy = ev.y - this.startY;
-    if (Math.abs(dx) >= SWIPE_PX && Math.abs(dx) > Math.abs(dy) * 1.2 && ev.t - this.startT < SWIPE_MS) {
+    const need = this.dragged ? DRAG_PX : SWIPE_PX;
+    const fast = this.dragged || ev.t - this.startT < SWIPE_MS;
+    if (Math.abs(dx) >= need && Math.abs(dx) > Math.abs(dy) * 1.2 && fast) {
       this.g.swipe = dx > 0 ? 1 : -1;
-      this.swiped = true;
-      // allow a second swipe without lifting: reset origin
+      // drag mode: further lane changes in the same gesture need DRAG_PX each
+      this.dragged = true;
       this.startX = ev.x; this.startY = ev.y; this.startT = ev.t;
-      this.swiped = false;
     }
   }
   private pu(e: PointerEvent, kind: 'up' | 'cancel') {
@@ -102,7 +107,7 @@ export class Input {
     if (e.pointerId !== this.activeId) return;
     const dt = ev.t - this.startT;
     const moved = Math.hypot(ev.x - this.startX, ev.y - this.startY);
-    if (kind === 'up' && !this.guarded && !this.swiped && dt < HOLD_MS + 60 && moved < 10) this.g.tap = { x: ev.x, y: ev.y };
+    if (kind === 'up' && !this.guarded && !this.swiped && !this.dragged && dt < HOLD_MS + 60 && moved < 10) this.g.tap = { x: ev.x, y: ev.y };
     this.activeId = -1;
     this.g.down = false; this.g.holding = false; this.g.holdTime = 0;
   }

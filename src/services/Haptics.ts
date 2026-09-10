@@ -23,11 +23,11 @@ export class Haptics {
   }
   impact(style: ImpactStyle = 'Medium'): void {
     if (!this.enabled) return;
-    if (!this.mod) { void this.load(); if ('vibrate' in navigator && this.throttle(60)) navigator.vibrate?.(style === 'Heavy' ? 40 : style === 'Medium' ? 20 : 8); return; }
+    if (!this.mod) { void this.load(); return; }
     if (!this.throttle(40)) return;
     this.mod.impact({ style }).catch(() => { /* ignore */ });
   }
   success(): void { if (!this.enabled) return; if (!this.mod) { void this.load(); return; } this.mod.notification({ type: 'Success' }).catch(() => {}); }
-  error(): void { if (!this.enabled) return; if (!this.mod) { void this.load(); navigator.vibrate?.([30, 30, 60]); return; } this.mod.notification({ type: 'Error' }).catch(() => {}); }
+  error(): void { if (!this.enabled) return; if (!this.mod) { void this.load(); return; } this.mod.notification({ type: 'Error' }).catch(() => {}); }
   tick(): void { if (!this.enabled) return; if (!this.mod) { void this.load(); return; } if (!this.throttle(30)) return; this.mod.selectionChanged().catch(() => {}); }
 }

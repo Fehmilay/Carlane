@@ -101,7 +101,7 @@ export class PlayScreen implements Screen {
     if (this.phase === 'play') {
       const sw = inp.consumeSwipe();
       if (sw !== 0 && !w.frozen) { if (w.player.moveLane(sw)) { g.audio.sfx('swipe'); g.haptics.tick(); } this.onAction?.('swipe'); }
-      const boosting = (inp.holding || this.autoBoost) && !w.frozen && !w.finished;
+      const boosting = (inp.holding || this.autoBoost) && !w.frozen && !w.finished && !w.player.overheated;
       if (this.autoAbility > 0 && w.time >= this.autoAbility && w.ability.ready) this.tryAbility();
       if (boosting && !w.player.boosting) { g.audio.sfx('boostStart'); this.onAction?.('boost'); }
       if (!boosting && w.player.boosting) g.audio.sfx('boostEnd');
@@ -136,7 +136,9 @@ export class PlayScreen implements Screen {
 
   onPointer(ev: PointerEv): void {
     if (ev.kind !== 'down' || this.phase !== 'play' || this.world.frozen) return;
-    if (inRect(this.abilityBtn, ev.x, ev.y)) { this.tryAbility(); }
+    if (inRect(this.abilityBtn, ev.x, ev.y)) { this.tryAbility(); return; }
+    if (inRect(this.pauseBtn, ev.x, ev.y)) { this.pause(); return; }
+    // instant abilities also fire on a plain tap anywhere (handled via consumeTap in update)
   }
   onBack(): boolean { if (this.phase === 'play') { this.pause(); return true; } return false; }
 

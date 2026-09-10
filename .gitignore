@@ -9,3 +9,5 @@ ios/App/App.xcodeproj/xcuserdata/
 ios/App/build/
 ios/App/public/
 ios/App/DerivedData/
+dist-*/
+shots-*/
