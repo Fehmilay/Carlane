@@ -195,6 +195,9 @@ export interface CityDef {
   traffic: string[];
   /** Music style id */
   music: MusicStyle;
+  /** Optional vertical slogans drawn in the sky (left, right) with English captions; defaults to the JDM pair. */
+  slogans?: [string, string];
+  captions?: [string, string];
 }
 
 export type MusicStyle =

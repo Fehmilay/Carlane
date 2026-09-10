@@ -2,6 +2,19 @@
 
 Read `docs/ARCHITECTURE.md` first. This file is the contract between parallel contributors.
 
+## THE in-game look (second reference image — this is what the client wants the GAME to look like)
+`/root/.claude/uploads/1cd161d2-70b3-557d-8eae-8a9ef8d37e33/16e31f44-image.png` — view it. Rear-view pseudo-3D road at dusk,
+the player's blue GT-R R34 is HUGE (≈ 40 % of the screen width, ≈ 96 px at our 240-px width) with fine details (twin round
+taillights with inner rings, GT-R badge, license plate with kanji, diffuser, exhaust, wing), traffic cars ahead are drawn from the
+same detailed sprites scaled down by depth, horizon at ≈ 50 % of the height, a dense Tokyo skyline with neon kanji billboards
+(東京 / JDM / ガレージ / スピード / 日本), Tokyo Tower, Mt. Fuji and a big sunset sun, sakura trees and red/white curbs along the road,
+petals in the air, vertical kanji slogans in the sky (走り続けろ / 夢の先へ) with tiny English captions, a bezel-style HUD with panels
+top-left/top-right (values in a bold pixel font), a green→red gradient speed/boost bar, a minimap panel bottom-left and one round
+button bottom-right. Uniform pixel size everywhere (no mixed pixel scales).
+Consequences: rear-view vehicle sprites are drawn at 2× the size first specified: cars 84–100 px wide × 56–76 px tall,
+kei cars ≈ 64×52, luxury/sedans ≈ 96×64, heavies/tanks/buses 112–128 px wide × 90–124 px tall (max 128×128). Side-view garage
+sprites stay 60–100 px wide. Skylines may be 60–130 px tall above the horizon.
+
 ## Ground rules
 1. **Own your files.** Only create/modify the files assigned to you. Never edit `src/core/*`, `src/game/World.ts`,
    `src/game/Player.ts`, `src/game/Road.ts`, `src/game/Ability.ts`, `src/game/Mechanic.ts`, `src/game/Traffic.ts`,

@@ -15,6 +15,7 @@ import { rearSprite, trafficTemplates, damagedSprite as makeDamaged } from '../c
 import { createAbility } from './abilities';
 import { createMechanic } from './mechanics';
 import { propSprite } from '../content/props';
+import { kanjiSprite } from '../core/Kanji';
 
 export interface Coin { lane: number; z: number; value: number; taken: boolean; t: number; big?: boolean; }
 export interface Projectile {
@@ -334,6 +335,7 @@ export class World {
     }
     // combo timer
     if (this.comboT > 0) { this.comboT -= dt; if (this.comboT <= 0) this.combo = 0; }
+    this.updateAmbient(dt);
     this.updateEffects(dt);
   }
 
@@ -438,6 +440,7 @@ export class World {
     const road = this.road;
     // sky
     r.bandedGradient(0, 0, r.w, road.hy + 2, [this.pal.skyTop, this.pal.skyBottom], 12);
+    this.renderSlogans();
     for (const m of this.mechanics) m.renderBack?.();
     // skyline (parallax with curve + lane)
     const px = -road.curve * 30 - road.camLaneX * 3;
@@ -468,6 +471,33 @@ export class World {
     if (this.mod.dark > 0) r.fillRect(0, 0, r.w, r.h, '#0b0b12', this.mod.dark * 0.6);
     if (this.mod.tint && this.mod.tintA > 0) r.fillRect(0, 0, r.w, r.h, this.mod.tint, this.mod.tintA);
     for (const f of this.floats) r.text(f.text, f.x, f.y, { align: 'center', color: f.color, outline: '#0b0b12', scale: f.scale ?? 1, alpha: 1 - Math.max(0, f.t - 0.6) / 0.4 });
+  }
+
+  /** Vertical kanji slogans in the sky (走り続けろ / 夢の先へ) with tiny English captions, like the reference. */
+  private renderSlogans(): void {
+    const r = this.game.r;
+    const [l, rr] = this.city.slogans ?? ['走り続けろ', '夢の先へ'];
+    const [cl, cr] = this.city.captions ?? ['DRIVE\nBEYOND\nLIMITS', 'CARS\nPEOPLE\nSTORIES\nFOREVER'];
+    const top = r.safeTop + 44;
+    const ls = kanjiSprite(l, { size: 14, vertical: true, color: '#f4f4f0', outline: '#16161f', gap: 2 });
+    const rs = kanjiSprite(rr, { size: 14, vertical: true, color: '#f4f4f0', outline: '#16161f', gap: 2 });
+    r.sprite(ls, 8, top, { origin: 'topleft', alpha: 0.92 });
+    r.sprite(rs, r.w - 8 - rs.w, top, { origin: 'topleft', alpha: 0.92 });
+    r.text(cl, 8, top + ls.h + 4, { color: '#f4f4f0', outline: '#16161f', alpha: 0.85, lineHeight: 8 });
+    r.text(cr, r.w - 8, top + rs.h + 4, { color: '#f4f4f0', outline: '#16161f', alpha: 0.85, align: 'right', lineHeight: 8 });
+  }
+
+  /** Ambient sakura petals for cities with cherry trees. */
+  private petalT = 0;
+  private updateAmbient(dt: number): void {
+    if (!this.city.props.includes('sakura')) return;
+    this.petalT += dt;
+    if (this.petalT > 0.12) {
+      this.petalT = 0;
+      const r = this.game.r;
+      const fromTop = Math.random() < 0.5;
+      this.fxFront.spawn({ x: fromTop ? Math.random() * r.w : r.w + 4, y: fromTop ? this.road.hy - 20 - Math.random() * 60 : this.road.hy + Math.random() * (r.h - this.road.hy), vx: -18 - Math.random() * 20, vy: 22 + Math.random() * 25, life: 4, maxLife: 4, colors: ['#ffb7d0', '#ff90c0', '#e04080'], size: 2, gravity: 4, alpha: 0.9 });
+    }
   }
 
   private renderProp(p: Prop): void {

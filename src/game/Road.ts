@@ -6,10 +6,10 @@ import { mix } from '../core/Palette';
  * Pseudo-3D road projection. World depth z is in meters ahead of the camera.
  * Screen scale s(z) = Z0 / (z + Z0). Player sits at z = PLAYER_Z and is drawn at scale 1.
  */
-export const Z0 = 13;
-export const PLAYER_Z = 0.6;
-export const LANE_W3 = 58; // lane width (px at player depth) for 3 lanes
-export const LANE_W5 = 44; // for 5 lanes
+export const Z0 = 20;
+export const PLAYER_Z = 2.0;
+export const LANE_W3 = 80; // lane width (px at player depth) for 3 lanes
+export const LANE_W5 = 64; // for 5 lanes
 export const SPAWN_Z = 150; // meters ahead where traffic appears
 
 export interface Projection { x: number; y: number; s: number; }
@@ -32,7 +32,7 @@ export class Road {
   constructor(private r: Renderer) { this.layout(); }
 
   layout(): void {
-    this.horizonY = Math.round(this.r.h * 0.38);
+    this.horizonY = Math.round(this.r.h * 0.5);
     this.roadH = this.r.h - this.horizonY;
     this.sPlayer = Z0 / (PLAYER_Z + Z0);
   }
@@ -46,7 +46,7 @@ export class Road {
   centerX(s: number): number {
     const far = 1 - s;
     const curveOff = this.curve * far * far * 110;
-    return this.r.w / 2 + curveOff - this.camLaneX * this.laneW * s * 0.35;
+    return this.r.w / 2 + curveOff - this.camLaneX * this.laneW * s * 0.5 / this.sPlayer;
   }
   /** horizon y including hill offset */
   get hy(): number { return this.horizonY + Math.round(this.hill * 24); }
@@ -92,6 +92,15 @@ export class Road {
       // road
       c.fillStyle = F(roadCol);
       c.fillRect(Math.round(cx - hw), y, Math.round(hw * 2), 1);
+      // asphalt speckle texture (deterministic per row/scroll) — reads like the reference's grainy tarmac
+      if (s > 0.25) {
+        const k = (y * 7 + Math.floor(zz * 2)) % 5;
+        if (k < 2) {
+          const off = ((y * 37 + Math.floor(zz * 11)) % Math.max(1, Math.round(hw * 2))) - hw;
+          c.fillStyle = F(k === 0 ? pal.roadAlt : pal.road);
+          c.fillRect(Math.round(cx + off), y, Math.max(1, Math.round(2 * s)), 1);
+        }
+      }
       // lane markings
       const dash = Math.floor(zz / 4) % 2 === 0;
       if (dash) {
