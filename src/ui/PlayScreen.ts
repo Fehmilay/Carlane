@@ -141,6 +141,7 @@ export class PlayScreen implements Screen {
     // instant abilities also fire on a plain tap anywhere (handled via consumeTap in update)
   }
   onBack(): boolean { if (this.phase === 'play') { this.pause(); return true; } return false; }
+  onHide(): void { this.pause(); }
 
   pause(): void {
     if (this.phase !== 'play') return;

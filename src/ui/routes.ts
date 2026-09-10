@@ -24,6 +24,7 @@ export async function openRoute(g: Game, hash: string): Promise<boolean> {
     if (q.has('boost')) ps.autoBoost = true;
     if (q.has('lane')) ps.world.player.lane = ps.world.player.laneX = parseInt(q.get('lane')!, 10) || 0;
     if (q.has('hp')) ps.world.player.hp = parseInt(q.get('hp')!, 10) || 1;
+    if (q.has('ab')) { const { createAbility } = await import('../game/abilities'); ps.world.ability = createAbility(q.get('ab') as never, ps.world); }
     g.goto(ps, false);
     return true;
   }

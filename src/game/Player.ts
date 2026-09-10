@@ -157,9 +157,10 @@ export class Player {
     const r = this.w.game.r;
     const { x, y } = this.screen();
     const s = this.sizeMul;
-    // shadow
-    const shW = Math.round(this.sprite.w * 0.9 * s), shH = 4;
-    r.fillRect(x - shW / 2, y - 2, shW, shH, '#000000', 0.35);
+    // shadow (shrinks + fades while airborne)
+    const airT = Math.min(1, this.air / 60);
+    const shW = Math.round(this.sprite.w * 0.9 * s * (1 - airT * 0.5)), shH = 4;
+    r.fillRect(x - shW / 2, y - 2, shW, shH, '#000000', 0.35 * (1 - airT * 0.6));
     let spr = this.w.damagedSprite(this.sprite, this.damageT);
     const lean = clamp(this.lean, -1, 1) * 0.28;
     if (Math.abs(lean) > 0.03) spr = shearSprite(spr, -lean);

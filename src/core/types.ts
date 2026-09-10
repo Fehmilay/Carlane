@@ -276,6 +276,8 @@ export interface Screen {
   onKey?(code: string, down: boolean): void;
   /** hardware/back gesture. return true if handled */
   onBack?(): boolean;
+  /** called when the app goes to the background (auto-pause) */
+  onHide?(): void;
   /** overlay screens render on top of the one below */
   overlay?: boolean;
 }

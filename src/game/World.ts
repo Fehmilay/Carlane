@@ -230,10 +230,10 @@ export class World {
     for (const m of this.mechanics) m.update(dt);
     const pl = this.player;
     // curve / hill drift
-    if (this.level.curves > 0) {
+    {
       const seg = Math.floor(this.distance / 220);
       const r2 = new Rng(seg * 31 + this.level.id);
-      this.curveTarget = (r2.next() * 2 - 1) * this.level.curves * (r2.chance(0.3) ? 0 : 1);
+      this.curveTarget = this.level.curves > 0 ? (r2.next() * 2 - 1) * this.level.curves * (r2.chance(0.3) ? 0 : 1) : 0;
       this.hillTarget = this.level.mechanics.includes('hills') ? (r2.next() * 2 - 1) * 0.8 : 0;
     }
     this.road.curve += (this.curveTarget - this.road.curve) * Math.min(1, dt * 0.8);

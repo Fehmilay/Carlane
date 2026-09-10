@@ -39,7 +39,7 @@ export class Game {
     window.addEventListener('resize', () => this.r.resize());
     window.addEventListener('orientationchange', () => setTimeout(() => this.r.resize(), 50));
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { this.paused = true; this.audio.suspend(); this.save.flush(); }
+      if (document.hidden) { this.top?.onHide?.(); this.paused = true; this.audio.suspend(); this.save.flush(); }
       else { this.paused = false; this.last = performance.now(); this.audio.resume(); }
     });
   }
