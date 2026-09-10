@@ -30,7 +30,9 @@ const outDir = path.resolve(process.env.SHOTS ?? 'shots');
 if (!existsSync(outDir)) mkdirSync(outDir);
 
 const browser = await pw.chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+// STORE=1 renders 6.7" App Store size (1290×2796); default is iPhone 14/15 logical size at 3×.
+const store = !!process.env.STORE;
+const ctx = await browser.newContext({ viewport: store ? { width: 430, height: 932 } : { width: 393, height: 852 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('PAGEERROR', e.message));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('CONSOLE', m.type(), m.text()); });
