@@ -198,6 +198,12 @@ export interface CityDef {
   /** Optional vertical slogans drawn in the sky (left, right) with English captions; defaults to the JDM pair. */
   slogans?: [string, string];
   captions?: [string, string];
+  /** Lamp-post prop id placed regularly on both roadsides ('' = none). Default 'lamp'. */
+  lampProp?: string;
+  /** Texts for the neon billboards along the road (native script welcome). Default: [glyph, NAME]. */
+  billboards?: string[];
+  /** Destinations shown on the green highway signs. Default: [name, country]. */
+  signs?: string[];
 }
 
 export type MusicStyle =

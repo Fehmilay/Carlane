@@ -16,6 +16,8 @@ import { createAbility } from './abilities';
 import { createMechanic } from './mechanics';
 import { propSprite } from '../content/props';
 import { kanjiSprite } from '../core/Kanji';
+import { makeCanvas, spriteFromCanvas } from '../core/Sprite';
+import { L } from '../core/i18n';
 
 export interface Coin { lane: number; z: number; value: number; taken: boolean; t: number; big?: boolean; }
 export interface Projectile {
@@ -31,6 +33,8 @@ export interface Projectile {
 }
 export interface Hazard { kind: string; lane: number; z: number; w: number; active: boolean; t: number; data?: Record<string, number>; }
 export interface Prop { side: -1 | 1; z: number; sprite: PixelSprite; offset: number; }
+/** Sign / billboard sprites are built once per text (pixel font + kanji helper drawn on a small canvas). */
+const signCache = new Map<string, PixelSprite>();
 export interface FloatText { x: number; y: number; text: string; t: number; color: string; scale?: number; laneX?: number; z?: number; }
 
 export type WorldEvent = 'kill' | 'hit' | 'coin' | 'nearMiss' | 'finish' | 'dead' | 'combo';
@@ -77,6 +81,9 @@ export class World {
   private lastFree: number[] = [];
   private coinDist = 60;
   private propDist = 0;
+  private lampDist = 30;
+  private signDist = 40;
+  private signCount = 0;
   private templates: TrafficTemplate[];
   private heavyTemplates: TrafficTemplate[];
   private cityTemplates: TrafficTemplate[];
@@ -262,6 +269,20 @@ export class World {
     }
     // props
     if (this.distance + SPAWN_Z > this.propDist) { this.addProp(SPAWN_Z + this.rng.range(0, 8)); this.propDist = this.distance + this.rng.range(9, 18); }
+    // regular lamp posts on both sides, city signs and neon billboards
+    if (this.distance + SPAWN_Z > this.lampDist) {
+      const lampId = this.city.lampProp ?? 'lamp';
+      const lamp = lampId ? propSprite(lampId) : null;
+      if (lamp) { this.props.push({ side: -1, z: SPAWN_Z, sprite: lamp, offset: 4 }, { side: 1, z: SPAWN_Z, sprite: lamp, offset: 4 }); }
+      this.lampDist += 48;
+    }
+    if (this.distance + SPAWN_Z > this.signDist) {
+      const side: -1 | 1 = this.signCount % 2 ? -1 : 1;
+      const spr = this.signCount % 3 === 1 ? this.highwaySign() : this.billboard(this.signCount);
+      this.props.push({ side, z: SPAWN_Z, sprite: spr, offset: 12 });
+      this.signCount++;
+      this.signDist += this.rng.range(110, 170);
+    }
     // ability
     this.ability.update(dt);
     const ts = this.mod.timeScale;
@@ -471,6 +492,51 @@ export class World {
     if (this.mod.dark > 0) r.fillRect(0, 0, r.w, r.h, '#0b0b12', this.mod.dark * 0.6);
     if (this.mod.tint && this.mod.tintA > 0) r.fillRect(0, 0, r.w, r.h, this.mod.tint, this.mod.tintA);
     for (const f of this.floats) r.text(f.text, f.x, f.y, { align: 'center', color: f.color, outline: '#0b0b12', scale: f.scale ?? 1, alpha: 1 - Math.max(0, f.t - 0.6) / 0.4 });
+  }
+
+  /** Green highway sign: "CITY  →" + destinations, drawn with the pixel font. */
+  private highwaySign(): PixelSprite {
+    const lines = this.city.signs ?? [L(this.city.name).toUpperCase(), L(this.city.country).toUpperCase()];
+    const key = 'sign:' + lines.join('|');
+    const hit = signCache.get(key);
+    if (hit) return hit;
+    const font = this.game.r.font;
+    const tw = Math.max(...lines.map((l) => font.measure(l))) + 16;
+    const w = Math.max(44, tw), h = 8 + lines.length * 9 + 12;
+    const c = makeCanvas(w, h);
+    const x = c.getContext('2d')!;
+    x.fillStyle = '#0b0b12'; x.fillRect(0, 0, w, h - 12);
+    x.fillStyle = '#0e6a2a'; x.fillRect(1, 1, w - 2, h - 14);
+    x.fillStyle = '#f4f4f0'; x.fillRect(2, 2, w - 4, 1); x.fillRect(2, h - 15, w - 4, 1); x.fillRect(2, 2, 1, h - 16); x.fillRect(w - 3, 2, 1, h - 16);
+    lines.forEach((l, i) => font.draw(x, l, 6, 5 + i * 9, { color: '#f4f4f0' }));
+    font.draw(x, '→', w - 11, 5, { color: '#ffe870' });
+    x.fillStyle = '#6a6a78'; x.fillRect(Math.round(w / 2) - 2, h - 12, 2, 12); x.fillRect(Math.round(w / 2) + 1, h - 12, 2, 12);
+    const spr = spriteFromCanvas(key, c);
+    signCache.set(key, spr);
+    return spr;
+  }
+  /** Neon billboard with native-script text (kanji rendered crisp via the Kanji helper). */
+  private billboard(n: number): PixelSprite {
+    const texts = this.city.billboards ?? [this.city.glyph ?? L(this.city.name), L(this.city.name).toUpperCase(), 'JDM'];
+    const text = texts[n % texts.length];
+    const colors = ['#e0202a', '#40e0f0', '#ff90c0', '#ffe870', '#8030c0'];
+    const col = colors[n % colors.length];
+    const key = `bb:${text}|${col}`;
+    const hit = signCache.get(key);
+    if (hit) return hit;
+    const vertical = Array.from(text).length <= 4 && /[\u3000-\u9fff]/.test(text);
+    const ks = kanjiSprite(text, { size: vertical ? 16 : 12, vertical, color: '#f4f4f0', bold: true });
+    const pad = 4, w = ks.w + pad * 2 + 2, h = ks.h + pad * 2 + 2 + 14;
+    const c = makeCanvas(w, h);
+    const x = c.getContext('2d')!;
+    x.fillStyle = '#0b0b12'; x.fillRect(0, 0, w, h - 14);
+    x.fillStyle = col; x.fillRect(1, 1, w - 2, h - 16);
+    x.fillStyle = '#16161f'; x.fillRect(3, 3, w - 6, h - 20);
+    x.drawImage(ks.canvas, pad + 1, pad + 1);
+    x.fillStyle = '#3a3a48'; x.fillRect(Math.round(w / 2) - 2, h - 14, 4, 14);
+    const spr = spriteFromCanvas(key, c);
+    signCache.set(key, spr);
+    return spr;
   }
 
   /** Vertical kanji slogans in the sky (走り続けろ / 夢の先へ) with tiny English captions, like the reference. */

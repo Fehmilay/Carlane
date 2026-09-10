@@ -32,7 +32,7 @@ export class Road {
   constructor(private r: Renderer) { this.layout(); }
 
   layout(): void {
-    this.horizonY = Math.round(this.r.h * 0.5);
+    this.horizonY = Math.round(this.r.h * 0.43);
     this.roadH = this.r.h - this.horizonY;
     this.sPlayer = Z0 / (PLAYER_Z + Z0);
   }
@@ -83,12 +83,20 @@ export class Road {
       const F = (col: string) => (fogT > 0 ? mix(col, pal.haze, fogT) : col);
       // ground alt band (grass stripes)
       if (!band) { c.fillStyle = F(groundCol); c.fillRect(0, y, r.w, 1); }
-      // curbs
-      const cw = Math.max(1, Math.round(4 * s + 1));
+      // red/white jersey barriers: a short wall whose height scales with depth (near rows overdraw far rows)
+      const cw = Math.max(1, Math.round(5 * s + 1));
+      const bh = Math.max(1, Math.round(7 * s));
       const curbBand = Math.floor(zz / 3) % 2 === 0;
-      c.fillStyle = F(curbBand ? pal.curb : pal.curbAlt);
-      c.fillRect(Math.round(cx - hw - cw), y, cw, 1);
-      c.fillRect(Math.round(cx + hw), y, cw, 1);
+      const col = F(curbBand ? pal.curb : pal.curbAlt);
+      c.fillStyle = col;
+      c.fillRect(Math.round(cx - hw - cw), y - bh + 1, cw, bh);
+      c.fillRect(Math.round(cx + hw), y - bh + 1, cw, bh);
+      if (bh >= 3) {
+        // lit top edge + dark base line
+        c.fillStyle = F(mix(col, '#ffffff', 0.35));
+        c.fillRect(Math.round(cx - hw - cw), y - bh + 1, cw, 1);
+        c.fillRect(Math.round(cx + hw), y - bh + 1, cw, 1);
+      }
       // road
       c.fillStyle = F(roadCol);
       c.fillRect(Math.round(cx - hw), y, Math.round(hw * 2), 1);
