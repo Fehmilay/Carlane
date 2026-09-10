@@ -22,6 +22,10 @@ export class PlayScreen implements Screen {
   pauseBtn: Rect = { x: 0, y: 0, w: 20, h: 20 };
   private boostSfx = false;
   revived = 0;
+  /** DEV: auto-activate the ability whenever it is ready, starting after N seconds (screenshots). */
+  autoAbility = 0;
+  /** DEV: hold boost permanently (screenshots). */
+  autoBoost = false;
   /** hook set by the tutorial to intercept gestures */
   onAction: ((a: 'swipe' | 'boost' | 'ability') => void) | null = null;
   constructor(public g: Game, public level: LevelDef, public vehicle: VehicleDef) {
@@ -97,7 +101,8 @@ export class PlayScreen implements Screen {
     if (this.phase === 'play') {
       const sw = inp.consumeSwipe();
       if (sw !== 0 && !w.frozen) { if (w.player.moveLane(sw)) { g.audio.sfx('swipe'); g.haptics.tick(); } this.onAction?.('swipe'); }
-      const boosting = inp.holding && !w.frozen && !w.finished;
+      const boosting = (inp.holding || this.autoBoost) && !w.frozen && !w.finished;
+      if (this.autoAbility > 0 && w.time >= this.autoAbility && w.ability.ready) this.tryAbility();
       if (boosting && !w.player.boosting) { g.audio.sfx('boostStart'); this.onAction?.('boost'); }
       if (!boosting && w.player.boosting) g.audio.sfx('boostEnd');
       w.player.boosting = boosting;

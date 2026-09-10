@@ -20,6 +20,10 @@ export async function openRoute(g: Game, hash: string): Promise<boolean> {
     const ps = new PlayScreen(g, lvl, car);
     if (q.has('skipcount')) { ps.countdown = 0; }
     if (q.has('god')) ps.world.player.invincible = true;
+    if (q.has('auto')) ps.autoAbility = parseFloat(q.get('auto') || '1') || 1;
+    if (q.has('boost')) ps.autoBoost = true;
+    if (q.has('lane')) ps.world.player.lane = ps.world.player.laneX = parseInt(q.get('lane')!, 10) || 0;
+    if (q.has('hp')) ps.world.player.hp = parseInt(q.get('hp')!, 10) || 1;
     g.goto(ps, false);
     return true;
   }
@@ -30,7 +34,7 @@ export async function openRoute(g: Game, hash: string): Promise<boolean> {
     case 'map': { const m = await import('./MapScreen'); g.goto(new m.MapScreen(g), false); return true; }
     case 'shop': { const m = await import('./ShopScreen'); g.goto(new m.ShopScreen(g), false); return true; }
     case 'settings': { const m = await import('./SettingsScreen'); g.goto(new m.SettingsScreen(g), false); return true; }
-    case 'spritesheet': { const m = await import('./dev/SpriteSheetScreen'); g.goto(new m.SpriteSheetScreen(g, parseInt(q.get('page') ?? '0', 10) || 0, q.has('traffic')), false); return true; }
+    case 'spritesheet': { const m = await import('./dev/SpriteSheetScreen'); g.goto(new m.SpriteSheetScreen(g, parseInt(q.get('page') ?? '0', 10) || 0, q.has('traffic'), q.has('all')), false); return true; }
     case 'skyline': { const m = await import('./dev/SkylineScreen'); g.goto(new m.SkylineScreen(g, q.get('city') ?? 'tokyo'), false); return true; }
     case 'props': case 'icons': case 'flags': { const m = await import('./dev/PropsScreen'); g.goto(new m.PropsScreen(g, screen, (q.get('ids') ?? '').split(',').filter(Boolean)), false); return true; }
     case 'title': { const m = await import('./TitleScreen'); g.goto(new m.TitleScreen(g), false); return true; }

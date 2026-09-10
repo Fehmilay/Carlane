@@ -3,13 +3,25 @@ import type { Game } from '../../core/Game';
 import { P } from '../../core/Palette';
 import { VEHICLES } from '../../content/vehicles';
 import { rearSprite, sideSprite, damagedSprite, trafficTemplates } from '../../content/vehicleSprites';
+import type { BodyTemplate, VehicleDef } from '../../core/types';
+
+const ALL_BODIES: BodyTemplate[] = ['coupe', 'sedan', 'hatch', 'kei', 'roadster', 'wagon', 'luxury', 'suv', 'pickup', 'van', 'truck', 'bus', 'tank', 'apc', 'monster', 'hyper', 'limo', 'police', 'firetruck', 'lowrider', 'taxi', 'tuktuk', 'tram'];
+/** One synthetic vehicle per body template (for testing templates before the roster exists). */
+function synthetic(): VehicleDef[] {
+  return ALL_BODIES.map((body, i) => ({
+    id: 'synth_' + body, num: i + 1, name: body.toUpperCase(), brand: 'custom', cls: 'jdm', body,
+    palette: { body: ['#e0202a', '#2040e0', '#f0c020', '#f4f4f0', '#8030c0', '#20b040', '#f07020', '#e04080'][i % 8], shade: '#23232f', light: '#ffffff', accent: '#ffe870', glass: '#40e0f0', lamp: '#e0202a' },
+    details: { spoiler: i % 2 ? 'wing' : 'none', exhaust: 2, lights: 'round' },
+    stats: { speed: 5, boost: 5, handling: 5, durability: 5, weight: 3 }, ability: 'nitro', unlock: { type: 'start' }, desc: { de: '', en: '' },
+  }));
+}
 
 /**
  * DEV: renders every vehicle's rear sprite (with 3 damage levels) and side sprite.
  * Route: #screen=spritesheet&page=0   (page = 0..n, 8 vehicles per page)  |  #screen=spritesheet&traffic=1
  */
 export class SpriteSheetScreen implements Screen {
-  constructor(private g: Game, private page = 0, private traffic = false) {}
+  constructor(private g: Game, private page = 0, private traffic = false, private all = false) {}
   update(): void {}
   render(): void {
     const r = this.g.r;
@@ -27,8 +39,9 @@ export class SpriteSheetScreen implements Screen {
       return;
     }
     const per = 8;
-    const list = VEHICLES.slice(this.page * per, this.page * per + per);
-    r.text(`VEHICLES ${this.page * per + 1}-${this.page * per + list.length} / ${VEHICLES.length}`, 4, 2, { color: P.white });
+    const src = this.all ? synthetic() : VEHICLES;
+    const list = src.slice(this.page * per, this.page * per + per);
+    r.text(`VEHICLES ${this.page * per + 1}-${this.page * per + list.length} / ${src.length}`, 4, 2, { color: P.white });
     let y = 14;
     for (const v of list) {
       const rear = rearSprite(v);
