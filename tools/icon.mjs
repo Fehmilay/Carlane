@@ -45,8 +45,8 @@ const P = {
 const CAR = [
   '..........kkkkkkkk.............',
   '..kkk...kkHHHHHHHHkk...........',
-  '.kHHHk.kkGwGGGkGGGGGkk.........',
-  '.kkkkkkGGGGGGGkGGGGGGkk........',
+  '.kHHHk.kkGwGkGGGGGGGkk.........',
+  '..k.k..kGGGGkGGGGGGGGkk........',
   'kBBBBBBBBBBBBBBBBBBBBBBBBBBBBBk',
   'kRHHHHHHHHHHHHHHHHHHHHHHHHHHHLk',
   'kRBBBBBBBBBBBBBBBBBBBBBBBBBBBLk',
@@ -175,15 +175,15 @@ async function paintInBrowser({ art, kind, size, preview }) {
     fill(0, 0, 32, SPLIT, P.red);
     fill(0, SPLIT, 32, 32 - SPLIT, P.blueDark);
     // Rising sun behind the car (white disc, a soft pink halo ring keeps it from looking pasted on).
-    disc(23.5, 6, 6.2, P.sakura);
-    disc(23.5, 6, 5.2, P.white);
-    // Cherry blossoms drifting in the sky.
-    blossom(4, 3); blossom(11, 6, P.pinkLight, P.white); blossom(6, 10); blossom(16, 2, P.sakura, P.white);
+    disc(23.5, 7.5, 6.2, P.sakura);
+    disc(23.5, 7.5, 5.2, P.white);
+    // Cherry blossoms drifting in the sky (kept clear of the car and the sun).
+    blossom(4, 3); blossom(9, 6, P.pinkLight, P.white); blossom(15, 2, P.sakura, P.white); blossom(2, 12, P.sakura, P.white);
     // Hero car: body rows 9..17, wheels 16..20.
     car(0, 9);
-    // Dashed lane line under the car, then the wordmark.
+    // Dashed lane line under the car, then the wordmark on the asphalt.
     for (let x = 0; x < 32; x++) if (x % 5 < 3) px(x, 22, P.gray1);
-    textC('CARLANE', 16, 24, P.white, 1, P.black);
+    textC('CARLANE', 16, 25, P.white, 1, P.black);
   } else {
     // Splash (200×200 grid): the launch storyboard aspect-fills this square, so on a 19.5:9 phone only the centre
     // ≈46% of the width (x ≈ 54..146) is visible — everything important stays inside x 60..140.
@@ -193,7 +193,7 @@ async function paintInBrowser({ art, kind, size, preview }) {
     disc(100, 86, 38, P.ink);
     // Blossoms around the car.
     blossom(66, 62, P.sakura, P.white, 2); blossom(138, 54, P.pinkLight, P.white, 2);
-    blossom(58, 108, P.pinkLight, P.white, 2); blossom(144, 100, P.sakura, P.white, 2); blossom(126, 40, P.sakura, P.white, 1);
+    blossom(62, 126, P.pinkLight, P.white, 2); blossom(144, 100, P.sakura, P.white, 2); blossom(126, 40, P.sakura, P.white, 1);
     // Kanji 車 badge, red on black, top-right of the car.
     kanji(114, 44, P.red, P.black, 2);
     // Checkered ground strip the tyres stand on.
