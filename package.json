@@ -13,7 +13,8 @@
     "shots": "node tools/screenshots.mjs",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "test:full": "npm run build && node tools/smoke.mjs"
+    "test:full": "npm run build && node tools/smoke.mjs",
+    "icon": "node tools/icon.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.0",

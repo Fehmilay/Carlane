@@ -1,0 +1,247 @@
+{
+  "identifier" : "CARLANE-STOREKIT-2026",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6749000001",
+      "localizations" : [
+        {
+          "description" : "3 Weiterfahren-Marken: nach einem Crash sofort weiterfahren.",
+          "displayName" : "3× Weiterfahren",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "3 revive tokens: keep driving right after a wreck.",
+          "displayName" : "3 Revives",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.revive3",
+      "referenceName" : "Revive x3",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.49",
+      "familyShareable" : false,
+      "internalID" : "6749000002",
+      "localizations" : [
+        {
+          "description" : "10 Weiterfahren-Marken: nach einem Crash sofort weiterfahren.",
+          "displayName" : "10× Weiterfahren",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "10 revive tokens: keep driving right after a wreck.",
+          "displayName" : "10 Revives",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.revive10",
+      "referenceName" : "Revive x10",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6749000003",
+      "localizations" : [
+        {
+          "description" : "2.500 Münzen für die Garage.",
+          "displayName" : "Münzbeutel (2.500)",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "2,500 coins for the garage.",
+          "displayName" : "Coin Bag (2,500)",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.coins.s",
+      "referenceName" : "Coins S",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "6749000004",
+      "localizations" : [
+        {
+          "description" : "8.000 Münzen für die Garage.",
+          "displayName" : "Münzkiste (8.000)",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "8,000 coins for the garage.",
+          "displayName" : "Coin Crate (8,000)",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.coins.m",
+      "referenceName" : "Coins M",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "5.99",
+      "familyShareable" : false,
+      "internalID" : "6749000005",
+      "localizations" : [
+        {
+          "description" : "20.000 Münzen für die Garage.",
+          "displayName" : "Münztresor (20.000)",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "20,000 coins for the garage.",
+          "displayName" : "Coin Vault (20,000)",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.coins.l",
+      "referenceName" : "Coins L",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "11.99",
+      "familyShareable" : false,
+      "internalID" : "6749000006",
+      "localizations" : [
+        {
+          "description" : "50.000 Münzen für die Garage.",
+          "displayName" : "Münzberg (50.000)",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "50,000 coins for the garage.",
+          "displayName" : "Coin Mountain (50,000)",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.coins.xl",
+      "referenceName" : "Coins XL",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : true,
+      "internalID" : "6749000007",
+      "localizations" : [
+        {
+          "description" : "Schaltet Type 90, Leopard 2 und Wolf APC sofort frei.",
+          "displayName" : "Panzer-Paket",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "Unlocks the Type 90, Leopard 2 and Wolf APC right away.",
+          "displayName" : "Tank Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.tankpack",
+      "referenceName" : "Tank Pack",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "6.99",
+      "familyShareable" : true,
+      "internalID" : "6749000008",
+      "localizations" : [
+        {
+          "description" : "Exklusives Hyper-Auto Volt Lini plus doppelte Münzen in jedem Rennen.",
+          "displayName" : "Legenden-Pass",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "Exclusive Volt Lini hypercar plus double coins in every run.",
+          "displayName" : "Legend Pass",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.legendpass",
+      "referenceName" : "Legend Pass",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : true,
+      "internalID" : "6749000009",
+      "localizations" : [
+        {
+          "description" : "Alle 48 Fahrzeuge sofort in der Garage.",
+          "displayName" : "Alles freischalten",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "All 48 vehicles in your garage, instantly.",
+          "displayName" : "Unlock All",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.fehmilay.carlane.unlockall",
+      "referenceName" : "Unlock All",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "de_DE",
+    "_storefront" : "DEU",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

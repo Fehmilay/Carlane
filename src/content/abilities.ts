@@ -2,11 +2,19 @@ import type { AbilityDef, AbilityId, AbilityKind, LocalizedText } from '../core/
 import { P } from '../core/Palette';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Catalog of ability definitions (UI metadata: name, one-line explanation, kind, timing, icon, HUD colour).
+// Catalog of ability definitions — UI metadata: name, one-line explanation, kind, timing, icon, HUD colour.
 // Runtime implementations live in game/abilities/ and follow the behaviour spec in docs/AGENT_GUIDE.md; the
-// cooldown/duration numbers here are the canonical values those implementations should mirror.
-// Names are ALL CAPS (the pixel font is caps-only anyway) and ≤ 16 chars so they fit centred at scale 2.
-// Descriptions are ONE short sentence that wraps to ≤ 3 lines on the ability card.
+// cooldown / duration numbers here are the canonical values those implementations mirror (`cdOf` / `durOf`).
+//
+// * kind 'instant'    – fires once on tap (tap-anywhere friendly); may still carry a short `duration` for the
+//                       implementer (jump arc, laser beam, railgun charge).
+//   kind 'duration'   – a mode that stays active for `duration` seconds (nitro, shield, mega, siren …).
+//   kind 'projectile' – launches something down the road (cannon, missile, shuriken, mines …).
+// * cooldown 2.5–12 s: the stronger the effect, the longer the wait.
+// * Names are ALL CAPS and ≤ 16 chars so they fit centred at scale 2 (240 px). Descriptions are ONE short
+//   sentence (≤ ~75 chars) that wraps to ≤ 3 lines on the ability card. Only glyphs the pixel font knows are
+//   used (no ß — it upper-cases to "SS" and would render as "?").
+// * icon = the AbilityId; ability implementers register the 16×16 icon under that name (content/icons.ts).
 // ─────────────────────────────────────────────────────────────────────────────
 
 // HUD colours not in the shared palette
@@ -14,6 +22,7 @@ const SEPIA = '#c8a060';
 const ICE = '#a0f0ff';
 const LILAC = '#b070f0';
 const EMBER = '#ff5030';
+const STEEL = '#c0c8d8';
 
 const def = (
   id: AbilityId, kind: AbilityKind, cooldown: number, duration: number | undefined, color: string,
@@ -30,8 +39,8 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   // ── overdrive / movement ─────────────────────────────────────────────────
   nitro: def('nitro', 'duration', 9, 3, P.cyan,
     'GODZILLA-NITRO', 'GODZILLA NITRO',
-    '3 Sekunden blauer Feuerstoß: Autos zerplatzen beim Rammen, du bleibst heil.',
-    '3 seconds of blue fire: rammed cars burst, you take no damage.'),
+    'Halte 3 Sekunden blauen Feuerstoss: Gerammte Autos zerplatzen, du bleibst heil.',
+    '3 seconds of blue fire: rammed cars burst apart and you take no damage.'),
   jump: def('jump', 'instant', 4.5, 1, P.white,
     'TOFU-HOP', 'TOFU HOP',
     'Springt in hohem Bogen über das nächste Auto.',
@@ -54,7 +63,7 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     'Teleports 60 m ahead. Anything parked there explodes.'),
   phase: def('phase', 'duration', 8, 2.5, LILAC,
     'DRIFT-GEIST', 'DRIFT GHOST',
-    '2,5 Sekunden Geisterform: Du fährst durch alle Autos hindurch.',
+    '2,5 Sekunden Geisterform: Du fährst durch jedes Auto hindurch.',
     '2.5 seconds of ghost form: you drive straight through every car.'),
   turbojet: def('turbojet', 'duration', 12, 4, P.blueLight,
     'TURBO-JET', 'TURBOJET',
@@ -62,25 +71,25 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     '4 seconds of jet mode: speed ×1.8, invulnerable, everything gets crushed.'),
   ram: def('ram', 'duration', 6, 1.5, P.orange,
     'RAMMBOCK', 'RAM CHARGE',
-    '1,5 Sekunden Eisen-Sturmlauf: Tempo ×1,4 und alles vor dir fliegt weg.',
+    '1,5 Sekunden Eisen-Sturm: Tempo ×1,4 und alles vor dir fliegt weg.',
     '1.5 seconds of iron charge: speed ×1.4 and everything ahead gets flattened.'),
   smokescreen: def('smokescreen', 'duration', 9, 4, P.gray1,
     'REIFENQUALM', 'SMOKE SCREEN',
-    '4 Sekunden Drift-Qualm: unverwundbar, jeder Treffer zerlegt das Auto.',
+    '4 Sekunden Drift-Qualm: unverwundbar, jeder Treffer zerlegt das andere Auto.',
     '4 seconds of drift smoke: invulnerable, every hit wrecks the other car.'),
   spin: def('spin', 'duration', 5, 1, P.yellow,
     'DRIFT-WIRBEL', 'DRIFT SPIN',
     'Eine Sekunde Pirouette: Autos in deiner und den Nachbarspuren fliegen weg.',
-    'One-second pirouette: cars in your lane and the next lanes go flying.'),
+    'One-second pirouette: cars in your lane and the next ones go flying.'),
   tornado: def('tornado', 'duration', 8, 3, P.teal,
     'DRIFT-TORNADO', 'DRIFT TORNADO',
-    '3 Sekunden Wirbelsturm ums Auto: Nachbarspuren werden leergefegt.',
+    '3 Sekunden Wirbelsturm ums Auto: Die Nachbarspuren werden leergefegt.',
     '3-second tornado around the car: neighbouring lanes get swept clean.'),
 
   // ── size & armour ────────────────────────────────────────────────────────
   shrink: def('shrink', 'duration', 9, 4, P.pinkLight,
     'KEI-MODUS', 'KEI MODE',
-    '4 Sekunden Winzling: halb so groß und du schlüpfst durch jede Lücke.',
+    '4 Sekunden Winzling: halb so gross, du schlüpfst durch jede Lücke.',
     '4 seconds of tiny mode: half size, slipping through every gap.'),
   mega: def('mega', 'duration', 12, 5, P.red,
     'MEGA-MODUS', 'MEGA MODE',
@@ -90,13 +99,13 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     'VIP-SCHILD', 'VIP SHIELD',
     '8 Sekunden Schutzblase, die zwei Treffer schluckt.',
     'An 8-second bubble that soaks up two hits.'),
-  ironbumper: def('ironbumper', 'duration', 10, 6, P.gray1,
+  ironbumper: def('ironbumper', 'duration', 10, 6, STEEL,
     'STAHL-BUMPER', 'IRON BUMPER',
-    '6 Sekunden Rammschutz: Kollisionen zerstören Autos, ohne dir zu schaden.',
+    '6 Sekunden Rammschutz: Kollisionen zerlegen Autos, ohne dir zu schaden.',
     '6 seconds of bull bar: collisions wreck cars without hurting you.'),
   repair: def('repair', 'instant', 12, undefined, P.green,
     'BOXENSTOPP', 'PIT STOP',
-    'Sofort +2 Lebenspunkte mit Schraubenschlüssel-Funken.',
+    'Sofort +2 Lebenspunkte im Schraubenschlüssel-Funkenregen.',
     'Instantly restores 2 hit points in a shower of wrench sparks.'),
 
   // ── shots & projectiles ──────────────────────────────────────────────────
@@ -107,10 +116,10 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   missile: def('missile', 'projectile', 5, undefined, EMBER,
     'ZIEL-RAKETE', 'HOMING MISSILE',
     'Lenkrakete, die das nächste Auto in jeder Spur jagt.',
-    'A homing missile that chases the nearest car in any lane.'),
+    'A homing missile that hunts the nearest car in any lane.'),
   laser: def('laser', 'instant', 8, 0.6, P.red,
     'WANGAN-LASER', 'WANGAN LASER',
-    'Roter Laserstrahl die Spur hinunter: alles auf 120 m verdampft.',
+    'Roter Laserstrahl die Spur hinunter: Alles auf 120 m verdampft.',
     'A red laser beam down the lane: everything within 120 m evaporates.'),
   railgun: def('railgun', 'instant', 9, 0.8, ICE,
     'RAILGUN', 'RAILGUN',
@@ -136,13 +145,13 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     'MINEN-WURF', 'MINE DROP',
     'Wirft drei Minen 30 m voraus in die anderen Spuren.',
     'Tosses three mines 30 m ahead into the other lanes.'),
-  anchor: def('anchor', 'projectile', 5, undefined, P.gray1,
+  anchor: def('anchor', 'projectile', 5, undefined, STEEL,
     'ANKER-WURF', 'ANCHOR TOSS',
     'Ein schwerer Anker pflügt 60 m durch deine Spur und alles darin.',
     'A heavy anchor ploughs 60 m down your lane and through everything in it.'),
-  chain: def('chain', 'projectile', 4, undefined, P.gray1,
+  chain: def('chain', 'projectile', 4, undefined, STEEL,
     'HARPUNEN-KETTE', 'HARPOON CHAIN',
-    'Harpune packt das nächste Auto und reißt es von der Straße.',
+    'Harpune packt das nächste Auto und reisst es von der Strasse.',
     'A harpoon grabs the next car and yanks it off the road.'),
   fireworks: def('fireworks', 'projectile', 9, undefined, P.pinkLight,
     'FEUERWERK', 'FIREWORKS',
@@ -150,7 +159,7 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     'Rockets rain down on every lane within 60 m ahead.'),
   drone: def('drone', 'duration', 11, 5, P.red,
     'NSX-DROHNE', 'NSX DRONE',
-    '5 Sekunden Kampfdrohne, die voraus alle Autos beschießt.',
+    '5 Sekunden Kampfdrohne, die voraus alle Autos beschiesst.',
     'A combat drone hovers ahead for 5 seconds, shooting every car.'),
   dragon: def('dragon', 'duration', 11, 2, P.gold,
     'NEON-DRACHE', 'NEON DRAGON',
@@ -162,9 +171,9 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     'VTEC-FLAMME', 'VTEC FLAME',
     '2 Sekunden Flammenwerfer: Autos bis 40 m vor dir gehen in Flammen auf.',
     '2 seconds of flamethrower: cars up to 40 m ahead go up in flames.'),
-  emp: def('emp', 'duration', 10, 1, P.purple,
+  emp: def('emp', 'instant', 10, undefined, P.purple,
     'EMP-PULS', 'EMP PULSE',
-    'Elektrischer Ring: Alle Autos im Umkreis von 80 m werden gegrillt.',
+    'Elektro-Ring: Alle Autos im Umkreis von 80 m werden gegrillt.',
     'Electric ring: every car within 80 m gets fried and knocked aside.'),
   sonicboom: def('sonicboom', 'instant', 7, undefined, P.purple,
     'ÜBERSCHALL-KNALL', 'SONIC BOOM',
@@ -184,19 +193,19 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
     'A bolt jumps across up to four nearby cars.'),
   bass: def('bass', 'instant', 8, undefined, P.pink,
     'BASS-DROP', 'BASS DROP',
-    'Der Bass fällt: Autos im Umkreis von 20 m werden nach außen geschleudert.',
+    'Der Bass fällt: Autos im Umkreis von 20 m werden nach aussen geschleudert.',
     'The bass drops: cars within 20 m get thrown outward.'),
   freeze: def('freeze', 'instant', 8, undefined, ICE,
     'EIS-STRAHL', 'ICE BEAM',
-    'Eisstrahl 50 m voraus: eingefrorene Autos zersplittern harmlos.',
+    'Eisstrahl 50 m voraus: Gefrorene Autos zersplittern harmlos.',
     'An ice beam 50 m ahead: frozen cars shatter harmlessly on contact.'),
   watercannon: def('watercannon', 'duration', 7, 2, P.cyan,
     'WASSERWERFER', 'WATER CANNON',
-    '2 Sekunden Wasserstrahl, der Autos von der Straße spült.',
+    '2 Sekunden Wasserstrahl, der Autos von der Strasse spült.',
     '2 seconds of water jet washing cars right off the road.'),
   blossom: def('blossom', 'duration', 9, 4, P.sakura,
     'SAKURA-STURM', 'SAKURA STORM',
-    '4 Sekunden Blütensturm, der Autos sanft von der Straße weht.',
+    '4 Sekunden Blütensturm, der Autos sanft von der Strasse weht.',
     'A 4-second petal storm that gently blows cars off the road.'),
 
   // ── crowd control ────────────────────────────────────────────────────────
