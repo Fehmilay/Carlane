@@ -206,7 +206,13 @@ function carSpec(def: VehicleDef): Spec {
       };
       break;
     case 'kei':
-      s = {
+      s = open ? {
+        w: 64, h: 48, roofTop: 7,
+        prof: [[7, 20], [8, 22], [9, 23], [14, 25], [20, 28], [24, 30], [32, 31], [38, 30], [42, 29], [44, 23]],
+        glassY0: 1, glassY1: 6, glassHW: [15, 19], belt: 7,
+        lampCY: 25, lampOuter: 29, plateCY: 35, plateW: 16, plateH: 7,
+        splitY: 39, bot: 44, tyreTop: 33, tyreOuter: 30, tyreW: 9, diffHW: 11, open: true, mirrorY: 12,
+      } : {
         w: 64, h: 52, roofTop: 2,
         prof: [[2, 17], [3, 19], [4, 20], [8, 21], [9, 22], [16, 25], [22, 28], [26, 30], [34, 31], [40, 30], [44, 29], [47, 23]],
         glassY0: 9, glassY1: 21, glassHW: [16, 20], belt: 22,
@@ -375,7 +381,8 @@ function paintGlass(g: Grid, s: Spec, def: VehicleDef): void {
     }
   }
   if (d.extra === 'vip') {
-    for (let x = cx - hwB + 5; x <= cx + hwB - 6; x += 4) for (let y = s.glassY0 + 2; y < s.glassY1 - 2; y++) over(g, x, y, 'e', 'ZzG');
+    // rear-window curtain: three slim pleats in the middle of the glass
+    for (const x of [cx - 7, cx, cx + 7]) for (let y = s.glassY0 + 2; y < s.glassY1 - 2; y++) over(g, x, y, 'd', 'ZzG');
   }
 }
 

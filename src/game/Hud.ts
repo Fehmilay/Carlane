@@ -118,6 +118,11 @@ export function drawAbilityButton(g: Game, ps: PlayScreen): void {
   }
   // name label for the first seconds of a run
   if (w.time < 3.5 && ps.phase === 'play') {
-    r.text(L(def.name), cx, b.y - 10, { align: 'center', color: def.color, outline: P.black });
+    const label = L(def.name);
+    const tw = r.textWidth(label);
+    // keep the label on screen even when the button sits in a corner
+    const tx = Math.max(4 + tw / 2, Math.min(r.w - 4 - tw / 2, cx));
+    r.fillRect(tx - tw / 2 - 2, b.y - 11, tw + 4, 9, P.black, 0.6);
+    r.text(label, tx, b.y - 10, { align: 'center', color: def.color, outline: P.black });
   }
 }
