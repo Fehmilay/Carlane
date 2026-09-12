@@ -62,7 +62,7 @@ function extraMap(def: VehicleDef): CharMap {
   return {
     z: mix(glass, '#ffffff', 0.5),
     Z: mix(glass, '#0b0b12', 0.84),
-    j: mix(lamp, '#ffffff', 0.5),
+    j: mix(lamp, '#ffb060', 0.45),
     J: mix(lamp, '#0b0b12', 0.55),
     N: mix(p.shade || body, '#0b0b12', 0.45),
     h: mix(p.light || body, '#ffffff', 0.4),
@@ -95,20 +95,21 @@ function roundLamp(g: Grid, cx: number, cy: number, r: number): void {
   g.circle(cx, cy, r, 'k');
   if (r <= 2) { g.circle(cx, cy, r - 1, 'j'); return; }
   g.circle(cx, cy, r - 1, 'j');
-  g.circle(cx, cy, r - 3 < 1 ? 1 : r - 3, 'J');
-  if (r >= 5) { g.rect(cx - 1, cy - 1, 2, 2, 'L'); }
+  g.circle(cx, cy, r - 2, 'L');
+  if (r >= 5) g.rect(cx - 1, cy - 1, 2, 2, 'J');
   g.px(cx - r + 2, cy - r + 2, 'w');
 }
 /** Rectangular lamp cluster: red main + amber + white reverse segment. */
 function boxLamp(g: Grid, x: number, y: number, w: number, h: number, flip: boolean): void {
   g.box(x, y, w, h, 'k', 'L');
   g.hline(x + 1, x + w - 2, y + 1, 'j');
-  const seg = Math.max(2, Math.round(w / 3));
+  g.hline(x + 1, x + w - 2, y + h - 2, 'J');
+  const seg = Math.max(2, Math.round(w / 4));
   const ax = flip ? x + 1 : x + w - 1 - seg;
   g.rect(ax, y + 1, seg, h - 2, 'o');
   g.vline(flip ? ax + seg : ax - 1, y + 1, y + h - 2, 'k');
-  const wx = flip ? x + 1 : x + w - 1 - Math.max(2, seg - 1);
-  g.rect(wx, y + h - 3, Math.max(2, seg - 1), 2, 'w');
+  const wx = flip ? x + 1 : x + w - 1 - seg;
+  g.rect(wx, y + h - 3, seg, 2, 'w');
 }
 /** Tyre seen from behind: black block, tread notches, a sliver of rim. */
 function tyre(g: Grid, x: number, y0: number, y1: number, w: number, rimSide: number): void {
@@ -178,7 +179,7 @@ function carSpec(def: VehicleDef): Spec {
         s = {
           w: 96, h: 70, roofTop: 6,
           prof: [[6, 25], [7, 27], [8, 28], [11, 29], [12, 30], [20, 35], [28, 40], [31, 43], [36, wide ? 46 : 45], [42, wide ? 47 : 46], [50, wide ? 47 : 46], [53, 45], [57, 43], [61, 41], [65, 35]],
-          glassY0: 12, glassY1: 28, glassHW: [24, 28], belt: 29,
+          glassY0: 12, glassY1: 28, glassHW: [26, 30], belt: 29,
           lampCY: 41, lampOuter: 37, plateCY: 51, plateW: 24, plateH: 8,
           splitY: 56, bot: 65, tyreTop: 50, tyreOuter: wide ? 46 : 45, tyreW: 12, diffHW: 24,
         };
@@ -190,7 +191,7 @@ function carSpec(def: VehicleDef): Spec {
       s = {
         w: 94, h: 68, roofTop: 5,
         prof: [[5, 26], [6, 28], [7, 29], [12, 30], [13, 31], [22, 35], [29, 39], [33, 42], [38, 45], [44, 46], [52, 46], [55, 45], [58, 43], [63, 35]],
-        glassY0: 13, glassY1: 28, glassHW: [25, 29], belt: 29,
+        glassY0: 12, glassY1: 28, glassHW: [27, 31], belt: 29,
         lampCY: 38, lampOuter: 40, plateCY: 49, plateW: 24, plateH: 8,
         splitY: 54, bot: 63, tyreTop: 48, tyreOuter: 45, tyreW: 12, diffHW: 22,
       };
@@ -199,7 +200,7 @@ function carSpec(def: VehicleDef): Spec {
       s = {
         w: 88, h: 64, roofTop: 3,
         prof: [[3, 24], [4, 26], [5, 27], [10, 28], [11, 29], [20, 33], [28, 37], [32, 40], [38, 42], [44, 43], [50, 43], [53, 42], [56, 40], [59, 32]],
-        glassY0: 11, glassY1: 29, glassHW: [23, 29], belt: 30,
+        glassY0: 10, glassY1: 29, glassHW: [25, 31], belt: 30,
         lampCY: 38, lampOuter: 38, plateCY: 48, plateW: 22, plateH: 8,
         splitY: 52, bot: 59, tyreTop: 46, tyreOuter: 42, tyreW: 11, diffHW: 18,
       };
@@ -374,7 +375,7 @@ function paintGlass(g: Grid, s: Spec, def: VehicleDef): void {
     }
   }
   if (d.extra === 'vip') {
-    for (let x = cx - hwB + 3; x <= cx + hwB - 4; x += 3) for (let y = s.glassY0 + 1; y < s.glassY1 - 1; y++) over(g, x, y, 'w', 'Zz');
+    for (let x = cx - hwB + 5; x <= cx + hwB - 6; x += 4) for (let y = s.glassY0 + 2; y < s.glassY1 - 2; y++) over(g, x, y, 'e', 'ZzG');
   }
 }
 
@@ -399,7 +400,7 @@ function paintDeck(g: Grid, s: Spec, def: VehicleDef): void {
   // beltline + shoulder highlight
   const hwB = halfAt(s.prof, s.belt);
   g.hline(cx - hwB + 1, cx + hwB - 2, s.belt, 'k');
-  hlineOver(g, cx - hwB + 1, cx + hwB - 2, s.belt + 1, 'H', 'B');
+  hlineOver(g, cx - hwB + 4, cx + hwB - 5, s.belt + 1, 'H', 'B');
   // shoulder crease running a little way down the flanks
   for (let y = s.belt + 2; y < Math.min(s.lampCY, s.belt + 7); y++) {
     const hw = halfAt(s.prof, y);
@@ -452,13 +453,14 @@ function taillights(g: Grid, s: Spec, def: VehicleDef): void {
         const x = sgn < 0 ? cx - o : cx + o - lw;
         g.box(x, y - (lh >> 1), lw, lh, 'k', 'C');
         g.rect(x + 1, y - (lh >> 1) + 1, lw - 2, lh - 2, 'e');
-        roundLamp(g, x + 3, y, 2);
-        roundLamp(g, x + lw - 4, y, 2);
+        for (const bx of [x + 3, x + lw - 4]) {
+          g.circle(bx, y, 2, 'J'); g.circle(bx, y, 1, 'L'); g.px(bx, y, 'j'); g.px(bx - 1, y - 1, 'w');
+        }
       }
       break;
     }
     default: {
-      const r = big ? 6 : 4;
+      const r = big ? 5 : 4;
       for (const sgn of [-1, 1]) roundLamp(g, cx + sgn * (o - r - 1), y, r);
       break;
     }
@@ -486,10 +488,11 @@ function plate(g: Grid, s: Spec, def: VehicleDef): void {
   for (let i = 0; i < marks; i++) g.rect(x + 3 + i * 4, y + 1, 2, top - 1, 'K');
   g.rect(x + pw - 5, y + 1, 3, top - 1, 'K');
   const num = plateNum(def);
-  const tx = x + Math.round((pw - textW(num)) / 2) + 3;
+  const tx = x + Math.round((pw - textW(num)) / 2) + 4;
   text(g, num, tx, y + top, 'K');
-  g.px(tx - 3, y + top + 3, 'K');
-  g.px(tx - 6, y + top + 3, 'K');
+  g.px(x + 2, y + top + 3, 'K');
+  g.px(x + 4, y + top + 3, 'K');
+  if (pw >= 22) g.px(x + pw - 3, y + top + 3, 'r');
 }
 
 function bumper(g: Grid, s: Spec, def: VehicleDef): void {
@@ -497,7 +500,7 @@ function bumper(g: Grid, s: Spec, def: VehicleDef): void {
   const d = def.details ?? {};
   const hw = halfAt(s.prof, s.splitY);
   g.hline(cx - hw + 1, cx + hw - 2, s.splitY, 'k');
-  hlineOver(g, cx - hw + 2, cx + hw - 3, s.splitY + 1, 'H', 'B');
+  hlineOver(g, cx - hw + 6, cx + hw - 7, s.splitY + 1, 'h', 'B');
   // diffuser insert
   if (s.diffHW > 4) {
     const y0 = Math.min(s.bot - 1, s.splitY + 3), y1 = s.bot;
@@ -560,8 +563,8 @@ function spoiler(g: Grid, s: Spec, def: VehicleDef): void {
     case 'bigwing': {
       const big = kind === 'bigwing';
       const hw = Math.min(cx - 2, big ? Math.round(s.w * 0.46) : Math.round(s.w * 0.37));
-      const y = big ? 1 : 2;
-      const th = big ? 3 : 2;
+      const y = big ? 0 : 1;
+      const th = big ? 4 : 3;
       g.rect(cx - hw, y, hw * 2, th, 'B');
       g.hline(cx - hw, cx + hw - 1, y, 'H');
       g.hline(cx - hw, cx + hw - 1, y + th - 1, 'b');
@@ -574,7 +577,7 @@ function spoiler(g: Grid, s: Spec, def: VehicleDef): void {
         if (big) g.px(sx, standTop, 'H');
       }
       if (big) {
-        for (const sx of [cx - hw, cx + hw - 2]) { g.rect(sx, y - 1, 2, th + 3, 'A'); g.px(sx, y - 1, 'w'); }
+        for (const sx of [cx - hw, cx + hw - 2]) { g.rect(sx, y, 2, th + 4, 'A'); g.px(sx, y, 'w'); }
         g.rect(cx - hw + 2, y + th, hw * 2 - 4, 1, 'b');
       }
       g.rect(cx - 3, y + 1, 6, 1, 'j'); // third brake light

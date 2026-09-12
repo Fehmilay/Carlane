@@ -738,7 +738,7 @@ function build(): TrafficTemplate[] {
   // ── bosses (≈1.3× the heavies) ─────────────────────────────────────────────
   const pBossTruck = pal('#17171f', { accent: '#e0202a', light: '#3a3a48', glass: '#101620', chrome: '#c8ccd4' });
   out.push(bossT('boss_truck', mk('boss_truck', 'truck', pBossTruck, { lights: 'quad', bumper: 'ram', extra: 'wide' }, 12, (p) => {
-    const s = p.w >= 90 ? 2 : 1;
+    const s = p.w >= 110 ? 3 : p.w >= 80 ? 2 : 1;
     p.stamp(SKULL, (p.w >> 1) - Math.round((9 * s) / 2), yf(p, 0.26), { '#': '#eceee8', o: '#14141c' }, s, 'in');
     bandY(p, 0.5, 0.52, '#e0202a', 'body');
     chevrons(p, 0.86, 0.92, '#e0202a', '#14141c');
@@ -757,7 +757,7 @@ function build(): TrafficTemplate[] {
 
   const pBossBus = pal('#2a1420', { accent: '#e0202a', light: '#4a2434', glass: '#12161e' });
   out.push(bossT('boss_bus', mk('boss_bus', 'bus', pBossBus, { lights: 'quad', bumper: 'bull', extra: 'doubledeck' }, 12, (p) => {
-    const s = p.w >= 90 ? 2 : 1;
+    const s = p.w >= 110 ? 3 : p.w >= 80 ? 2 : 1;
     p.stamp(SKULL, (p.w >> 1) - Math.round((9 * s) / 2), yf(p, 0.3), { '#': '#e0202a', o: '#14141c' }, s, 'in');
     for (let y = yf(p, 0.2); y <= yf(p, 0.28); y++) for (let x = 0; x < p.w; x++) p.px(x, y, (x + y) % 6 < 3 ? '#4a2434' : '#2a1420', 'body');
     bandY(p, 0.62, 0.64, '#e0202a', 'body');

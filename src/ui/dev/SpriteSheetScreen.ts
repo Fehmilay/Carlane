@@ -30,15 +30,19 @@ export class SpriteSheetScreen implements Screen {
       const tpls = trafficTemplates();
       let x = 4, y = 12;
       r.text('TRAFFIC TEMPLATES ' + tpls.length, 4, 2, { color: P.white });
+      // sprites are up to 128 px wide, so the sheet scales each one into a fixed cell
+      const CW = 78, CH = 74;
       for (const t of tpls) {
-        if (x + 60 > r.w) { x = 4; y += 60; }
-        r.sprite(t.sprite, x + 28, y + 44);
-        r.text(t.id.slice(0, 11), x, y + 47, { color: P.yellow });
-        x += 60;
+        if (x + CW > r.w) { x = 4; y += CH; }
+        if (y > r.h) break;
+        const sc = Math.min(1, (CW - 6) / t.sprite.w, (CH - 12) / t.sprite.h);
+        r.sprite(t.sprite, x + CW / 2, y + CH - 10, { scale: sc });
+        r.text(t.id.slice(0, 12), x, y + CH - 8, { color: P.yellow });
+        x += CW;
       }
       return;
     }
-    const per = 8;
+    const per = 5;
     const src = this.all ? synthetic() : VEHICLES;
     const list = src.slice(this.page * per, this.page * per + per);
     r.text(`VEHICLES ${this.page * per + 1}-${this.page * per + list.length} / ${src.length}`, 4, 2, { color: P.white });
@@ -49,13 +53,14 @@ export class SpriteSheetScreen implements Screen {
       r.fillRect(0, y, r.w, 1, P.gray2);
       r.text(`${String(v.num).padStart(2, '0')} ${v.name}`, 4, y + 3, { color: P.yellow });
       r.text(`${v.body} ${rear.w}x${rear.h} ${side.w}x${side.h}`, 4, y + 12, { color: P.gray1 });
-      const base = y + 60;
-      r.sprite(rear, 26, base);
-      r.sprite(damagedSprite(rear, 1), 70, base);
-      r.sprite(damagedSprite(rear, 2), 114, base);
-      r.sprite(damagedSprite(rear, 3), 158, base);
-      r.sprite(side, 200, base);
-      y += 66;
+      const base = y + 78;
+      const sc = Math.min(0.55, 52 / rear.w, 60 / rear.h);
+      r.sprite(rear, 28, base, { scale: sc });
+      r.sprite(damagedSprite(rear, 1), 84, base, { scale: sc });
+      r.sprite(damagedSprite(rear, 2), 140, base, { scale: sc });
+      r.sprite(damagedSprite(rear, 3), 196, base, { scale: sc });
+      r.sprite(side, 120, base + 16, { scale: Math.min(0.8, 220 / side.w) });
+      y += 96;
     }
   }
 }
