@@ -16,6 +16,16 @@ import { drawRear } from './rear';
 //
 // Bosses reuse a heavy sprite scaled 1.3× with nearest-neighbour (scaleSprite).
 // Nothing is built at module load (no DOM yet): trafficTemplates() builds once and caches.
+//
+// INTEGRATION NOTE (World.ts, not editable from here): `World.templates` is built as
+// `all.filter(t => !t.heavy && !t.boss)`, so every city-only vehicle (tuktuk, vocho, dolmuş,
+// songthaew, London cab…) is also in the everywhere-pool and shows up in Tokyo or New York.
+// Suggested fix in World.pickTemplate: keep a generic pool of the 11 ids that start with
+// `sedan_/hatch_/coupe_/wagon_/suv_/van_/pickup_` (or add a `generic?: boolean` flag to
+// TrafficTemplate and filter on it) and use city.traffic for everything else.
+// heavy/hp follow the guide exactly: only the ten ids tagged "heavy" there are heavy (hp 2,
+// damage 2, 250 pts) — city buses like bus_blue/bus_rio stay 1-hp city vehicles so they do not
+// leak into the global heavy pool.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type RGB = [number, number, number];
@@ -274,9 +284,18 @@ function checkerBand(p: Pen, f0: number, f1: number, cw: number, ch: number, col
     if (((((x / cw) | 0) + (((y - y0) / ch) | 0)) & 1) === 0) p.px(x, y, col, m);
   }
 }
+/** Band that follows the silhouette, inset from both edges (keeps stripes off the tyres). */
+function rowBand(p: Pen, f0: number, f1: number, insetF: number, col: (x: number, y: number) => string, m: Mode = 'in'): void {
+  for (let y = yf(p, f0); y <= yf(p, f1); y++) {
+    const e = p.edges(y);
+    if (!e) continue;
+    const ins = Math.round((e[1] - e[0]) * insetF);
+    for (let x = e[0] + ins; x <= e[1] - ins; x++) p.px(x, y, col(x, y), m);
+  }
+}
 /** Diagonal hazard stripes (garbage truck / mixer / boss bumpers). */
 function chevrons(p: Pen, f0: number, f1: number, a: string, b: string, m: Mode = 'in'): void {
-  for (let y = yf(p, f0); y <= yf(p, f1); y++) for (let x = 0; x < p.w; x++) p.px(x, y, (x + y) % 8 < 4 ? a : b, m);
+  rowBand(p, f0, f1, 0.1, (x, y) => ((x + y) % 8 < 4 ? a : b), m);
 }
 /** Neon underglow + marker lamps along the silhouette (dekotora, party rigs). */
 function neonTrim(p: Pen, cols: string[]): void {
@@ -290,7 +309,7 @@ function neonTrim(p: Pen, cols: string[]): void {
     p.px(e[0] + 1, y, cols[(y >> 2) % cols.length], 'in');
     p.px(e[1] - 1, y, cols[(y >> 2) % cols.length], 'in');
   }
-  bandY(p, 0.86, 0.9, cols[1], 'in');
+  rowBand(p, 0.86, 0.9, 0.14, (x) => cols[(x >> 2) % cols.length], 'in');
 }
 /** Big cargo circle (tanker end cap / mixer drum). */
 function drum(p: Pen, cy: number, r: number, paint: (x: number, y: number, d: number) => string | null): void {
