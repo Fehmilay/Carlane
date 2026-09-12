@@ -11,6 +11,9 @@ export class Haptics {
     if (this.mod || this.loading) return;
     this.loading = true;
     try {
+      // Only load the plugin on a native platform — the web fallback spams navigator.vibrate warnings.
+      const cap = await import('@capacitor/core');
+      if (!cap.Capacitor.isNativePlatform()) { this.enabled = false; return; }
       const m = await import('@capacitor/haptics');
       this.mod = m.Haptics as unknown as typeof this.mod;
     } catch { this.mod = null; }

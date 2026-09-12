@@ -639,7 +639,7 @@ export class World {
     else if (h.kind === 'lava') { const on = Math.floor(h.t * 6) % 2 === 0; r.fillRect(p.x - w / 2, p.y - hh, w, hh, on ? '#f07020' : '#e0202a'); }
     else if (h.kind === 'water') { r.fillRect(p.x - w / 2, p.y - hh, w, hh, '#2040e0', 0.5); }
     else if (h.kind === 'cone') { r.fillRect(p.x - 2 * p.s, p.y - 8 * p.s, 4 * p.s, 8 * p.s, '#f07020'); r.fillRect(p.x - 3 * p.s, p.y - 2 * p.s, 6 * p.s, 2 * p.s, '#f4f4f0'); }
-    else { r.fillRect(p.x - w / 2, p.y - hh, w, hh, '#e0202a', 0.6); }
+    // other kinds (barrier, tollgate, camera…) are drawn by their mechanics
   }
   private renderFinish(): void {
     const dz = this.level.length - this.distance;
