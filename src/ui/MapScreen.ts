@@ -130,7 +130,8 @@ export class MapScreen implements Screen {
     // texts
     drawFlag(r, city.countryCode, rect.x + 32, rect.y + 6, 1);
     r.text(L(city.name).toUpperCase(), rect.x + 44, rect.y + 6, { color: unlocked ? P.white : P.gray1, outline: P.black });
-    r.text(L(l.name).toUpperCase().slice(0, 26), rect.x + 32, rect.y + 17, { color: unlocked ? P.yellow : P.gray2, outline: P.black });
+    const nameW = rect.w - 32 - 26;
+    r.text(L(l.name).toUpperCase().slice(0, Math.floor(nameW / 6)), rect.x + 32, rect.y + 17, { color: unlocked ? P.yellow : P.gray2, outline: P.black });
     // tags
     let tx = rect.x + 32;
     for (const m of l.mechanics.slice(0, 3)) {
@@ -152,8 +153,11 @@ export class MapScreen implements Screen {
     else drawDeco(r, 'lock', rect.x + rect.w - 28, rect.y + rect.h - 16, 1, P.gray1);
     if (current) {
       const spr = rearSprite(getVehicle(g.save.data.selectedVehicle));
-      r.sprite(spr, rect.x + rect.w - 52, rect.y + rect.h - 4, { scale: 0.32 });
-      r.text(t('newLabel'), rect.x + rect.w - 56, rect.y + 17, { align: 'right', color: P.red, outline: P.black });
+      r.sprite(spr, rect.x + rect.w - 52, rect.y + rect.h - 4, { scale: 0.3 });
+      const nl = t('newLabel');
+      const nw = r.textWidth(nl) + 4;
+      r.fillRect(rect.x + 30, rect.y + rect.h - 11, nw, 9, P.red);
+      r.text(nl, rect.x + 32, rect.y + rect.h - 10, { color: P.white });
     }
   }
   private drawCard(): void {
