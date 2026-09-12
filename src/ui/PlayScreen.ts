@@ -26,6 +26,7 @@ export class PlayScreen implements Screen {
   autoAbility = 0;
   /** DEV: hold boost permanently (screenshots). */
   autoBoost = false;
+  private resultsShown = false;
   /** hook set by the tutorial to intercept gestures */
   onAction: ((a: 'swipe' | 'boost' | 'ability') => void) | null = null;
   constructor(public g: Game, public level: LevelDef, public vehicle: VehicleDef) {
@@ -121,7 +122,6 @@ export class PlayScreen implements Screen {
       if (inp.keys.has('Escape')) { inp.keys.delete('Escape'); this.pause(); return; }
       g.audio.engine(Math.min(1, w.player.speed / 80), w.player.boosting, true);
       w.update(dt);
-      if (w.finished && w.finishT > 1.2 && this.phase === 'play') this.showResults();
       return;
     }
     if (this.phase === 'dead') {
@@ -131,7 +131,13 @@ export class PlayScreen implements Screen {
       if (this.phaseT > 1.4) this.showGameOver();
       return;
     }
-    if (this.phase === 'finished') { w.player.boosting = false; w.update(dt); }
+    if (this.phase === 'finished') {
+      w.player.boosting = false;
+      g.audio.engine(Math.min(1, w.player.speed / 80), false, true);
+      w.update(dt);
+      // the finish banner plays first, then the results panel slides in (once)
+      if (!this.resultsShown && w.finishT > 1.6) { this.resultsShown = true; this.showResults(); }
+    }
   }
 
   tryAbility(): void {
@@ -157,6 +163,8 @@ export class PlayScreen implements Screen {
   }
   showResults(): void {
     this.phase = 'finished';
+    this.resultsShown = true;
+    this.g.audio.engine(0, false, false);
     void import('./ResultsOverlay').then((m) => this.g.push(new m.ResultsOverlay(this.g, this, true)));
   }
   showGameOver(): void {

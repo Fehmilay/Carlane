@@ -98,6 +98,11 @@ for (const c of cars) {
   check(`car ${c} ability runs`, st.phase === 'play' && st.dist > 50, `dist ${Math.round(st.dist ?? 0)}`);
 }
 // game over + revive overlay
+// finishing a short level must open the results panel
+await open('level=1&skipcount&god&notut&len=400', 100);
+for (let i = 0; i < 40; i++) { await page.waitForTimeout(500); st = await state(); if (st.screen === 'ResultsOverlay') break; }
+check('finishing a level shows results', st.screen === 'ResultsOverlay', st.screen);
+
 // dense 3-lane level with 1 HP: the idle car is guaranteed to be hit within a few seconds
 await open('level=22&skipcount&notut&hp=1', 100);
 for (let i = 0; i < 70; i++) { await page.waitForTimeout(500); st = await state(); if (st.screen === 'ResultsOverlay') break; }

@@ -4,7 +4,7 @@ import type { PixelSprite } from '../../core/Sprite';
 import type { SkylineFn } from './types';
 import { P, mix } from '../../core/Palette';
 import { kanjiSprite } from '../../core/Kanji';
-import { block, mountain, water, dome, spire, bridge, neon, palm, far, mid, near, skyFurniture, clouds, isDark, isNight, h01 } from './lib';
+import { block, mountain, water, dome, spire, neon, palm, far, mid, near, skyFurniture, clouds, isDark, isNight, h01 } from './lib';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EUROPE catalog: duesseldorf, berlin, munich, istanbul, paris, london, rome,
@@ -1221,7 +1221,7 @@ const moscow: SkylineFn = (r, p, tod, px, y, t, fog) => {
   // ── far: the Ostankino tower + blocks
   skyrow(r, y - 12, o0, F, gl, tod, 71, 9, 15, 12, 24, 0.4);
   {
-    const x = 40 + o0;
+    const x = 120 + o0;
     for (let j = 0; j < 56; j++) {
       const f = j / 56;
       const hw = Math.max(1, Math.round(5 * Math.pow(1 - f, 1.6) + 1));
@@ -1267,7 +1267,7 @@ const moscow: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x - 24, B - 21, 49, 2, mix(body, '#ffffff', 0.2));
   }
   {
-    const x = 220 + o1, st = A('#8a8a94', 0.06);
+    const x = 208 + o1, st = A('#8a8a94', 0.06);
     block(r, x - 16, B, 33, 28, st, gl, tod, 77, 0.55);
     block(r, x - 11, B - 28, 23, 18, st, gl, tod, 78, 0.55);
     block(r, x - 6, B - 46, 13, 12, st, gl, tod, 79, 0.55);

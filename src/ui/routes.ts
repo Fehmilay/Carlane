@@ -14,7 +14,9 @@ export async function openRoute(g: Game, hash: string): Promise<boolean> {
   if (q.has('maxlevel')) { const n = parseInt(q.get('maxlevel')!, 10) || 1; for (let i = 1; i < n; i++) g.save.data.levels[String(i)] = { stars: 3, best: 9999, done: true }; }
   if (q.has('notut')) { for (const k of ['play', 'ability_nitro']) g.save.data.tutorialsSeen[k] = true; g.save.data.tutorialsSeen.__all = true; }
   if (q.has('level')) {
-    const lvl = getLevel(parseInt(q.get('level')!, 10) || 1);
+    let lvl = getLevel(parseInt(q.get('level')!, 10) || 1);
+    // dev: shorten the track so the finish/results flow can be captured
+    if (q.has('len')) lvl = { ...lvl, length: parseInt(q.get('len')!, 10) || 400 };
     const car = getVehicle(q.get('car') ?? g.save.data.selectedVehicle);
     const { PlayScreen } = await import('./PlayScreen');
     const ps = new PlayScreen(g, lvl, car);

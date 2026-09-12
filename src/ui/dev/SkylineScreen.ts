@@ -6,6 +6,7 @@ import { drawSkyline } from '../../content/cities';
 import { Road } from '../../game/Road';
 import { drawFlag } from '../../content/flags';
 import { L } from '../../core/i18n';
+import { kanjiSprite } from '../../core/Kanji';
 
 /**
  * DEV: renders a city's skyline for all four times of day with sky + road.
@@ -35,6 +36,8 @@ export class SkylineScreen implements Screen {
       r.text(tod.toUpperCase() + (city.palettes[tod] ? '' : ' (day fallback)'), 3, y0 + 2, { color: P.white, outline: P.black });
     });
     drawFlag(r, city.countryCode, 3, r.h - 10, 1);
-    r.text(`${L(city.name)} / ${L(city.country)} ${city.glyph ?? ''}`, 16, r.h - 10, { color: P.white, outline: P.black });
+    const label = `${L(city.name)} / ${L(city.country)}`;
+    r.text(label, 16, r.h - 10, { color: P.white, outline: P.black });
+    if (city.glyph) { const g = kanjiSprite(city.glyph, { size: 9, color: P.white, outline: P.black }); r.sprite(g, 20 + r.textWidth(label), r.h - 11, { origin: 'topleft' }); }
   }
 }
