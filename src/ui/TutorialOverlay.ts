@@ -19,7 +19,7 @@ export class TutorialOverlay implements Screen {
   private okBtn: Button;
   constructor(private g: Game, private ps: PlayScreen) {
     const r = g.r;
-    this.skipBtn = new Button({ x: r.w - 58, y: r.safeTop + 30, w: 52, h: 14 }, t('skip'), { color: P.gray3, style: 'ghost', onTap: () => this.finish() });
+    this.skipBtn = new Button({ x: r.w - 58, y: r.safeTop + 40, w: 52, h: 14 }, t('skip'), { color: P.gray3, style: 'ghost', onTap: () => this.finish() });
     this.okBtn = new Button({ x: r.w / 2 - 40, y: r.h / 2 + 30, w: 80, h: 20 }, t('ok'), { color: P.green, onTap: () => this.startWait() });
   }
   enter(): void {
@@ -51,6 +51,8 @@ export class TutorialOverlay implements Screen {
   }
   update(dt: number): void {
     this.t += dt;
+    // keep the world paused while a card is up (an overlay above us may have unfrozen it)
+    if (this.phase === 'card' && this.step !== 'done') this.ps.world.frozen = true;
     this.skipBtn.update(dt);
     this.okBtn.update(dt);
     if (this.step === 'done' && this.t > 1.2) this.finish();

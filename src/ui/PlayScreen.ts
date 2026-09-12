@@ -50,14 +50,20 @@ export class PlayScreen implements Screen {
   private async showTutorials(): Promise<void> {
     const s = this.g.save;
     const abKey = 'ability_' + this.vehicle.ability;
-    if (!s.tutorialSeen(abKey) && !s.tutorialSeen('__all')) {
-      const m = await import('./AbilityCardOverlay');
-      this.g.push(new m.AbilityCardOverlay(this.g, this, this.vehicle));
-    }
-    if (!s.tutorialSeen('play') && !s.tutorialSeen('__all')) {
+    const needAbility = !s.tutorialSeen(abKey) && !s.tutorialSeen('__all');
+    const needPlay = !s.tutorialSeen('play') && !s.tutorialSeen('__all');
+    const showPlay = async () => {
+      if (!needPlay) return;
       const m = await import('./TutorialOverlay');
       this.g.push(new m.TutorialOverlay(this.g, this));
+    };
+    if (needAbility) {
+      const m = await import('./AbilityCardOverlay');
+      // the ability card comes first; the driving tutorial follows once it is dismissed
+      this.g.push(new m.AbilityCardOverlay(this.g, this, this.vehicle, () => void showPlay()));
+      return;
     }
+    await showPlay();
   }
   exit(): void { this.g.input.gestureGuard = null; this.g.audio.engine(0, false, false); }
 

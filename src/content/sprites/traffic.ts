@@ -248,12 +248,14 @@ function lightbar(p: Pen, left: string = P.red, right = '#2a5cf0', dome = false)
   p.hline(x0, x1, r.y + 1, '#ffffff', 'in');
   if (!dome) p.hline(x0, x1, r.y + r.h - 1, '#3a3a48', 'in');
 }
-/** Destination / route board on the rear of a bus or tram. */
+/** Destination / route board on the rear of a bus or tram (the label is trimmed to the board width). */
 function destBoard(p: Pen, label: string, bg = '#14141c', fg = '#ffb020'): void {
   const r = roofInfo(p);
   const w = Math.max(14, Math.round(p.w * 0.4)), x = (p.w >> 1) - (w >> 1), y = r.plane + Math.max(2, Math.round(p.h * 0.05));
   p.rect(x, y, w, 7, bg, 'in');
-  p.textMid(label, p.w / 2, y + 1, fg, 'in');
+  p.hline(x, x + w - 1, y, '#08080c', 'in');
+  const fits = Math.max(1, Math.floor((w - 1) / 4));
+  p.textMid(label.slice(0, fits), p.w / 2, y + 1, fg, 'in');
 }
 /** Paint the top `rows` of body pixels (contrast roof). */
 function roofPaint(p: Pen, rows: number, col: string): void {
@@ -445,14 +447,14 @@ function build(): TrafficTemplate[] {
 
   const pPolUs = pal('#eceee8', { accent: '#14141c', glass: GLASS_DARK });
   out.push(civil('police_us', mk('police_us', 'police', pPolUs, { lights: 'square' }, 14, (p) => {
-    lowerPaint(p, 0.58, '#14141c');
-    if (p.w >= 40) p.textMid('POLICE', p.w / 2, yf(p, 0.47), '#14141c', 'body');
+    lowerPaint(p, 0.68, '#14141c');
+    if (p.w >= 36) p.textMid('POLICE', p.w / 2, yf(p, 0.5), '#14141c', 'body');
     lightbar(p);
   }), 1.1));
 
   const pPolJp = pal('#eceee8', { accent: '#14141c', glass: GLASS });
   out.push(civil('police_jp', mk('police_jp', 'police', pPolJp, { lights: 'square' }, 14, (p) => {
-    lowerPaint(p, 0.5, '#14141c');
+    lowerPaint(p, 0.66, '#14141c');
     lightbar(p, '#e0202a', '#e0202a', true);
   }), 1.05));
 
@@ -485,7 +487,7 @@ function build(): TrafficTemplate[] {
   const pKei = pal('#e8eae4', { accent: '#40a0d0', glass: GLASS });
   out.push(civil('kei_van', mk('kei_van', 'kei', pKei, { lights: 'square', roof: 'hard' }, 10, (p) => {
     bandY(p, 0.56, 0.6, '#40a0d0');
-    p.rect(p.w / 2 - 3, yf(p, 0.64), 7, 4, '#e0202a', 'body');
+    p.rect(p.w / 2 - 3, yf(p, 0.64), 7, 4, '#1a6ad0', 'body');
   }), 0.9));
 
   const pLada = pal('#cdbf98', { accent: '#8a8a92', glass: GLASS });

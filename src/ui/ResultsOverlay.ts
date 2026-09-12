@@ -3,7 +3,7 @@ import type { Game } from '../core/Game';
 import type { PlayScreen } from './PlayScreen';
 import { P, mix } from '../core/Palette';
 import { t, L } from '../core/i18n';
-import { Button, drawBezel, drawStars, drawChecker, drawDeco, toast, drawToasts } from './widgets';
+import { Button, drawBezel, drawStars, drawChecker, toast, drawToasts } from './widgets';
 import { goMap, startLevel, pushShop } from './nav';
 import { useRevive } from '../services/Store';
 import { getCity } from '../content/cities';
@@ -100,18 +100,18 @@ export class ResultsOverlay implements Screen {
     const title = this.won ? t('finish') : t('gameover');
     r.text(title, r.w / 2, y + 16, { align: 'center', color: this.won ? P.yellow : P.red, scale: 2, outline: P.black });
     const city = getCity(this.ps.level.city);
-    drawFlag(r, city.countryCode, x + 10, y + 18, 1);
-    r.text(L(city.name).toUpperCase(), x + 22, y + 18, { color: P.gray1 });
-    if (this.won) drawStars(r, r.w / 2, y + 44, this.stars, 3, 1.6, this.t);
-    else drawDeco(r, 'car', r.w / 2 - 5, y + 38, 1, P.gray2);
+    const cw = 12 + r.textWidth(L(city.name).toUpperCase());
+    drawFlag(r, city.countryCode, r.w / 2 - cw / 2, y + 30, 1);
+    r.text(L(city.name).toUpperCase(), r.w / 2 - cw / 2 + 12, y + 30, { color: P.gray1 });
+    if (this.won) drawStars(r, r.w / 2, y + 48, this.stars, 3, 1.6, this.t);
     if (this.offering) {
-      r.text(t('reviveOffer'), r.w / 2, y + 60, { align: 'center', color: P.white });
+      r.text(t('reviveOffer'), r.w / 2, y + 46, { align: 'center', color: P.white });
       // countdown ring
       const p = Math.max(0, this.reviveT / REVIVE_SECONDS);
-      r.ring(r.w / 2, y + 88, 14, P.gray3, 1);
+      r.ring(r.w / 2, y + 80, 14, P.gray3, 1);
       const n = Math.round(40 * p);
-      for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i / 40) * Math.PI * 2; r.fillRect(r.w / 2 + Math.cos(a) * 14, y + 88 + Math.sin(a) * 14, 2, 2, P.green); }
-      r.text(String(Math.ceil(this.reviveT)), r.w / 2, y + 85, { align: 'center', color: P.white, scale: 2 });
+      for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i / 40) * Math.PI * 2; r.fillRect(r.w / 2 + Math.cos(a) * 14, y + 80 + Math.sin(a) * 14, 2, 2, P.green); }
+      r.text(String(Math.ceil(this.reviveT)), r.w / 2, y + 77, { align: 'center', color: P.white, scale: 2 });
     } else {
       const ly = y + 62;
       const row = (i: number, label: string, value: string, col: string) => {
