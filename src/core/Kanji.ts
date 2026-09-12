@@ -1,4 +1,5 @@
 import { makeCanvas, type PixelSprite } from './Sprite';
+import { PixelFont } from './PixelFont';
 
 /**
  * Crisp pixel-art CJK/katakana text without hand-drawing glyphs: render with a system font onto a
@@ -21,11 +22,40 @@ export interface KanjiOpts {
   gap?: number;
 }
 
+const ASCII = /^[\x20-\x7e]+$/;
+const pixelFont = new PixelFont();
+
+/**
+ * Latin/ASCII text renders far crisper through the built-in 5×7 pixel font than through a
+ * thresholded system font, so it takes this path.
+ */
+function asciiSprite(text: string, key: string, o: KanjiOpts): PixelSprite {
+  const size = o.size ?? 12;
+  const scale = Math.max(1, Math.round(size / 7));
+  const color = o.color ?? '#f4f4f0';
+  const chars = Array.from(text);
+  const gw = 5 * scale, gh = 7 * scale, sp = scale;
+  const pad = o.outline ? scale : 0;
+  const w = (o.vertical ? gw : chars.length * gw + (chars.length - 1) * sp) + pad * 2;
+  const h = (o.vertical ? chars.length * (gh + sp) - sp : gh) + pad * 2;
+  const cv = makeCanvas(w, h);
+  const ctx = cv.getContext('2d')!;
+  chars.forEach((ch, i) => {
+    const x = pad + (o.vertical ? 0 : i * (gw + sp));
+    const y = pad + (o.vertical ? i * (gh + sp) : 0);
+    pixelFont.draw(ctx, ch, x, y, { scale, color, outline: o.outline });
+  });
+  const spr: PixelSprite = { id: 'kanji:' + key, w, h, ax: 0, ay: 0, canvas: cv };
+  cache.set(key, spr);
+  return spr;
+}
+
 export function kanjiSprite(text: string, o: KanjiOpts = {}): PixelSprite {
   const size = o.size ?? 12, color = o.color ?? '#f4f4f0', gap = o.gap ?? 1;
   const key = `${text}|${size}|${color}|${o.outline ?? ''}|${o.vertical ? 'v' : 'h'}|${o.bold ? 'b' : ''}|${gap}`;
   const hit = cache.get(key);
   if (hit) return hit;
+  if (ASCII.test(text)) return asciiSprite(text, key, o);
   const chars = Array.from(text);
   const cell = size + gap;
   const pad = o.outline ? 1 : 0;

@@ -309,7 +309,7 @@ function gull(r: Renderer, x: number, y: number, t: number, col: string, i: numb
 function tram(r: Renderer, x: number, y: number, body: string, band: string, litc: boolean, glow: string): void {
   r.fillRect(x, y - 8, 26, 8, mix(body, '#000000', 0.15));
   r.fillRect(x, y - 8, 26, 1, band);
-  r.fillRect(x + 2, y - 6, 22, 3, litc ? glow : mix(band, '#40e0f0', 0.45));
+  r.fillRect(x + 2, y - 6, 22, 3, litc ? glow : mix(body, '#40e0f0', 0.35));
   r.fillRect(x + 12, y - 13, 1, 5, mix(body, '#000000', 0.45));
   r.fillRect(x + 7, y - 13, 11, 1, mix(body, '#000000', 0.45));
   r.fillRect(x + 3, y, 4, 1, '#0b0b12'); r.fillRect(x + 19, y, 4, 1, '#0b0b12');
@@ -326,7 +326,7 @@ function suspension(r: Renderer, x0: number, x1: number, y: number, th: number, 
     return y - Math.round(th * (0.16 + 0.76 * u * u)) - 2;
   };
   for (let x = x0; x <= x1; x++) { const c = cy(x); r.fillRect(x, c, 1, 2, cable); }
-  for (let x = x0 + 3; x <= x1; x += 6) { const c = cy(x) + 2; if (y - c > 1) r.fillRect(x, c, 1, y - c, mix(cable, '#000000', 0.2)); }
+  for (let x = x0 + 5; x <= x1; x += 10) { const c = cy(x) + 2; if (y - c > 1) r.fillRect(x, c, 1, y - c, mix(cable, '#000000', 0.25)); }
   for (const tx of [t0, t1]) {
     r.fillRect(tx - 7, y - th, 5, th + 3, col);
     r.fillRect(tx + 3, y - th, 5, th + 3, col);
@@ -476,10 +476,10 @@ const duesseldorf: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x, y - 13, 2, 8, mix(N, '#000000', 0.25));
     r.disc(x + 1, y - 15, 4, A('#1e6a2c', 0.12)); r.disc(x - 1, y - 14, 3, A('#2a8038', 0.12));
   }
-  tram(r, 148 + o2, y - 5, A(P.red, 0), A('#f0f0ea', 0), litc, gl);
+  tram(r, 74 + o2, y - 5, A(P.red, 0.05), A('#f0f0ea', 0.05), litc, gl);
 
-  sign(r, 'ALTBIER', 5 + o2, y - 73, P.gold, 8, tod, t, 1);
-  sign(r, 'RHEIN', 222 + o2, y - 74, P.cyan, 9, tod, t, 2, true);
+  sign(r, 'ALTBIER', 4 + o2, y - 75, P.gold, 10, tod, t, 1);
+  sign(r, 'RHEIN', 176 + o2, y - 75, P.cyan, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -567,8 +567,8 @@ const berlin: SkylineFn = (r, p, tod, px, y, t, fog) => {
   }
   r.fillRect(0, y - 3, 240, 3, N);
 
-  sign(r, 'BERLIN', 5 + o2, y - 74, P.pink, 9, tod, t, 1);
-  sign(r, 'TECHNO', 172 + o2, y - 74, P.cyan, 9, tod, t, 2);
+  sign(r, 'BERLIN', 4 + o2, y - 75, P.pink, 10, tod, t, 1);
+  sign(r, 'TECHNO', 168 + o2, y - 75, P.cyan, 10, tod, t, 2);
   if (night) for (let i = 0; i < 4; i++) {
     const bx = 20 + i * 58 + o2;
     r.fillRect(bx, y - 78, 10, 74, i % 2 ? P.pink : P.purple, 0.09 + 0.07 * Math.sin(t * 3 + i));
@@ -658,8 +658,8 @@ const munich: SkylineFn = (r, p, tod, px, y, t, fog) => {
     if (i % 2) { spire(r, x, y - 7, 14, h, A('#1c5a34', 0.08)); r.fillRect(x - 1, y - 8, 3, 5, A('#3a2a1a', 0.08)); }
     else { r.disc(x, y - 15 - (i % 3), 7, A('#2a7a38', 0.1)); r.fillRect(x - 1, y - 14, 3, 8, A('#3a2a1a', 0.08)); }
   }
-  sign(r, 'BREZN', 5 + o2, y - 74, P.gold, 9, tod, t, 1);
-  sign(r, 'ALPEN', 178 + o2, y - 74, P.cyan, 9, tod, t, 2);
+  sign(r, 'BREZN', 4 + o2, y - 75, P.gold, 10, tod, t, 1);
+  sign(r, 'ALPEN', 178 + o2, y - 75, P.cyan, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -748,8 +748,8 @@ const istanbul: SkylineFn = (r, p, tod, px, y, t, fog) => {
     const gx = Math.round(((t * 11 + i * 63) % 300) - 30);
     gull(r, gx, y - 50 - Math.round(Math.sin(t * 0.8 + i) * 10), t, litc ? '#e8e8f0' : '#f8f8f4', i);
   }
-  sign(r, 'BOĞAZ', 5 + o2, y - 73, P.cyan, 9, tod, t, 1);
-  sign(r, 'ÇAY', 224 + o2, y - 74, P.gold, 10, tod, t, 2, true);
+  sign(r, 'BOĞAZ', 4 + o2, y - 75, P.cyan, 10, tod, t, 1);
+  sign(r, 'ÇAY', 202 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -848,8 +848,8 @@ const paris: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x - 1, y - 5 - h, 3, h, A('#4a3a28', 0.08));
     r.disc(x, y - 7 - h, 6, A('#2a6a34', 0.1)); r.disc(x - 3, y - 5 - h, 4, A('#347a3c', 0.1));
   }
-  sign(r, 'CAFÉ', 5 + o2, y - 74, P.red, 10, tod, t, 1);
-  sign(r, 'MÉTRO', 182 + o2, y - 74, P.gold, 9, tod, t, 2);
+  sign(r, 'CAFÉ', 4 + o2, y - 75, P.red, 10, tod, t, 1);
+  sign(r, 'MÉTRO', 178 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -940,8 +940,8 @@ const london: SkylineFn = (r, p, tod, px, y, t, fog) => {
     for (let k = 0; k < 6; k++) r.fillRect(35 + o2 + k * 14, dy - 26, 1, 26, mix(st, '#000000', 0.32));
   }
   r.fillRect(0, y - 4, 240, 4, N);
-  sign(r, 'TUBE', 5 + o2, y - 74, P.red, 10, tod, t, 1);
-  sign(r, 'TEA', 224 + o2, y - 74, P.gold, 10, tod, t, 2, true);
+  sign(r, 'TUBE', 4 + o2, y - 75, P.red, 10, tod, t, 1);
+  sign(r, 'TEA', 202 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1012,8 +1012,8 @@ const rome: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x - 8, y - 12 - h, 17, 3, A('#26682e', 0.08));
     r.disc(x - 4, y - 15 - h, 4, A('#2a7434', 0.08)); r.disc(x + 4, y - 15 - h, 4, A('#2a7434', 0.08));
   }
-  sign(r, 'ROMA', 5 + o2, y - 74, P.red, 10, tod, t, 1);
-  sign(r, 'PIZZA', 182 + o2, y - 74, P.gold, 9, tod, t, 2);
+  sign(r, 'ROMA', 4 + o2, y - 75, P.red, 10, tod, t, 1);
+  sign(r, 'PIZZA', 178 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1119,8 +1119,8 @@ const amsterdam: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x - 1, y - 13, 3, 11, A('#3a2c1e', 0.06));
     r.disc(x, y - 16, 6, A('#2a6a3c', 0.08)); r.disc(x + 3, y - 14, 4, A('#337a44', 0.08));
   }
-  sign(r, 'GRACHT', 5 + o2, y - 74, P.cyan, 9, tod, t, 1);
-  sign(r, 'FIETS', 184 + o2, y - 74, P.gold, 9, tod, t, 2);
+  sign(r, 'GRACHT', 4 + o2, y - 75, P.cyan, 10, tod, t, 1);
+  sign(r, 'FIETS', 178 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1189,8 +1189,8 @@ const barcelona: SkylineFn = (r, p, tod, px, y, t, fog) => {
   r.fillRect(0, y - 6, 240, 6, tod === 'night' ? mix(N, '#d8c090', 0.22) : A('#e6cf96', 0.03));
   r.fillRect(0, y - 7, 240, 1, tod === 'night' ? mix(N, '#e8d8a8', 0.3) : '#f2e0b0');
   for (let i = -1; i < 8; i++) palm(r, i * 32 + 12 + o2, y - 4, 18 + (i % 3) * 5, A('#1e5a34', 0.06));
-  sign(r, 'TAPAS', 5 + o2, y - 74, P.red, 9, tod, t, 1);
-  sign(r, 'GAUDÍ', 182 + o2, y - 74, P.gold, 9, tod, t, 2);
+  sign(r, 'TAPAS', 4 + o2, y - 75, P.red, 10, tod, t, 1);
+  sign(r, 'GAUDÍ', 178 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1274,8 +1274,8 @@ const moscow: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x - 3, y - 7 - Math.round(h * 0.72), 7, 1, tod === 'night' ? '#c8d2e4' : '#f4f8ff');
   }
   snowfall(r, y, t, 54, tod === 'night' ? '#dfe6f4' : '#ffffff');
-  sign(r, 'КРЕМЛЬ', 5 + o2, y - 74, P.red, 9, tod, t, 1);
-  sign(r, 'МОСКВА', 168 + o2, y - 74, P.cyan, 9, tod, t, 2);
+  sign(r, 'КРЕМЛЬ', 4 + o2, y - 75, P.red, 10, tod, t, 1);
+  sign(r, 'МОСКВА', 160 + o2, y - 75, P.cyan, 10, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1360,8 +1360,8 @@ const reykjavik: SkylineFn = (r, p, tod, px, y, t, fog) => {
     r.fillRect(x - 1, y - 9, 5, 1, mix(N, '#ffffff', 0.15));
   }
   snowfall(r, y, t, 24, isNight(tod) ? '#cfd8e8' : '#ffffff');
-  sign(r, 'AURORA', 5 + o2, y - 74, P.cyan, 9, tod, t, 1);
-  sign(r, 'ÍSLAND', 180 + o2, y - 74, P.gold, 9, tod, t, 2);
+  sign(r, 'AURORA', 4 + o2, y - 75, P.cyan, 10, tod, t, 1);
+  sign(r, 'ÍSLAND', 168 + o2, y - 75, P.gold, 10, tod, t, 2);
 };
 
 export const SKYLINES_EUROPE: Record<string, SkylineFn> = {

@@ -1006,70 +1006,74 @@ function firetruckGrid(def: VehicleDef): Grid {
 
 function tankGrid(def: VehicleDef): Grid {
   const d = def.details ?? {};
-  const w = 120, h = 106, cx = w >> 1;
+  const w = 120, h = 104, cx = w >> 1;
   const g = new Grid(w, h);
   // tracks
   for (const sgn of [-1, 1]) {
-    const x = sgn < 0 ? cx - 58 : cx + 38;
-    g.rect(x, 58, 20, h - 58, 'K');
-    g.vline(x, 58, h - 1, 'D'); g.vline(x + 19, 58, h - 1, 'D');
-    for (let y = 60; y < h; y += 3) g.hline(x + 1, x + 18, y, 'd');
-    g.circle(x + 10, h - 10, 8, 'D'); g.circle(x + 10, h - 10, 5, 'd');
-    for (let a = 0; a < 8; a++) {
-      const t = (a / 8) * Math.PI * 2;
-      g.px(x + 10 + Math.round(Math.cos(t) * 7), h - 10 + Math.round(Math.sin(t) * 7), 'e');
+    const x = sgn < 0 ? cx - 58 : cx + 34;
+    g.rect(x, 52, 24, h - 52, 'K');
+    g.vline(x, 52, h - 1, 'D'); g.vline(x + 23, 52, h - 1, 'D');
+    for (let y = 55; y < h; y += 3) { g.hline(x + 1, x + 22, y, 'd'); g.hline(x + 1, x + 22, y + 1, 'D'); }
+    // rear sprocket
+    g.circle(x + 11, h - 13, 10, 'D'); g.circle(x + 11, h - 13, 7, 'd'); g.circle(x + 11, h - 13, 3, 'e');
+    for (let a = 0; a < 10; a++) {
+      const t = (a / 10) * Math.PI * 2;
+      g.px(x + 11 + Math.round(Math.cos(t) * 9), h - 13 + Math.round(Math.sin(t) * 9), 'e');
     }
   }
-  // hull
-  g.trap(cx - 40, cx + 39, 52, cx - 46, cx + 45, 96, 'B');
-  g.hline(cx - 40, cx + 39, 52, 'H');
-  g.rect(cx - 46, 90, 92, 7, 'b');
-  // fenders over the tracks
-  g.rect(cx - 58, 52, 116, 6, 'b');
-  g.hline(cx - 58, cx + 57, 52, 'H');
-  g.hline(cx - 58, cx + 57, 57, 'k');
-  // engine deck louvres + exhaust
-  for (let y = 60; y < 76; y += 3) g.hline(cx - 30, cx + 29, y, 'N');
-  g.box(cx - 34, 58, 68, 22, 'k');
-  g.rect(cx - 10, 80, 20, 8, 'D'); g.box(cx - 10, 80, 20, 8, 'k');
-  for (let x = cx - 8; x < cx + 8; x += 3) g.vline(x, 81, 86, 'd');
-  // tow hooks + lights
+  // hull rear + fenders over the tracks
+  g.rect(cx - 36, 46, 72, 46, 'B');
+  g.rect(cx - 58, 44, 116, 8, 'b');
+  g.hline(cx - 58, cx + 57, 44, 'H');
+  g.hline(cx - 58, cx + 57, 51, 'k');
+  g.hline(cx - 36, cx + 35, 46, 'H');
+  for (let y = 46; y <= 92; y++) { g.px(cx - 36, y, 'b'); g.px(cx + 35, y, 'b'); }
+  g.rect(cx - 36, 88, 72, 5, 'b');
+  // engine deck louvres + exhaust grille
+  g.box(cx - 30, 54, 60, 24, 'k');
+  for (let y = 57; y < 77; y += 3) { g.hline(cx - 28, cx + 27, y, 'N'); g.hline(cx - 28, cx + 27, y + 1, 'b'); }
+  g.box(cx - 12, 80, 24, 9, 'k', 'D');
+  for (let x = cx - 9; x < cx + 10; x += 3) g.vline(x, 81, 87, 'd');
+  // tow hooks, shackles, lights
   for (const sgn of [-1, 1]) {
-    g.rect(cx + sgn * 40 - 3, 84, 6, 4, 'd');
-    g.rect(cx + sgn * 40 - 2, 85, 4, 2, 'K');
-    g.rect(sgn < 0 ? cx - 44 : cx + 38, 62, 6, 5, 'L');
-    g.px(sgn < 0 ? cx - 43 : cx + 39, 63, 'j');
+    g.rect(cx + sgn * 30 - 3, 84, 6, 5, 'd'); g.rect(cx + sgn * 30 - 2, 85, 4, 3, 'K');
+    g.rect(sgn < 0 ? cx - 34 : cx + 28, 48, 6, 5, 'k');
+    g.rect(sgn < 0 ? cx - 33 : cx + 29, 49, 4, 3, 'L');
+    g.px(sgn < 0 ? cx - 33 : cx + 29, 49, 'j');
   }
   // turret
-  g.trap(cx - 24, cx + 23, 20, cx - 30, cx + 29, 52, 'B');
-  g.hline(cx - 24, cx + 23, 20, 'H');
-  g.vline(cx - 30, 46, 52, 'b'); g.vline(cx + 29, 46, 52, 'b');
-  // stowage basket
-  g.box(cx - 28, 38, 56, 14, 'k', 'd');
-  for (let x = cx - 26; x < cx + 26; x += 4) g.vline(x, 39, 50, 'D');
-  for (let y = 41; y < 51; y += 4) g.hline(cx - 27, cx + 26, y, 'D');
-  // cupola, hatches, MG
-  g.ellipse(cx - 12, 26, 6, 4, 'b'); g.ellipse(cx - 12, 26, 4, 2, 'B');
-  g.ellipse(cx + 12, 27, 5, 3, 'b');
-  g.rect(cx - 16, 20, 8, 4, 'd'); g.rect(cx - 15, 18, 3, 3, 'D');
-  for (const sx of [cx - 28, cx + 26]) g.vline(sx, 8, 22, 'd');
-  g.rect(cx - 26, 30, 10, 3, 'd'); g.rect(cx + 17, 30, 10, 3, 'd');
-  // barrel pointing down the lane (foreshortened)
-  const long = d.extra === 'cannonLong';
-  const by = long ? 0 : 6;
-  g.trap(cx - 2, cx + 1, by, cx - 4, cx + 3, 24, 'b');
-  g.vline(cx - 2, by, 24, 'd'); g.vline(cx + 1, by, 24, 'N');
-  g.rect(cx - 4, by, 8, 3, 'd'); g.rect(cx - 3, by + 1, 6, 1, 'K');
-  g.rect(cx - 5, 22, 10, 4, 'b'); g.hline(cx - 5, cx + 4, 22, 'H');
+  g.trap(cx - 22, cx + 21, 16, cx - 30, cx + 29, 46, 'B');
+  g.hline(cx - 22, cx + 21, 16, 'H');
+  for (let y = 16; y <= 46; y++) { const t = (y - 16) / 30; const hw = Math.round(22 + t * 8); g.px(cx - hw, y, 'b'); g.px(cx + hw - 1, y, 'b'); }
+  // stowage basket on the turret bustle
+  g.box(cx - 26, 32, 52, 14, 'k', 'd');
+  for (let x = cx - 24; x < cx + 24; x += 4) g.vline(x, 33, 44, 'D');
+  for (let y = 35; y < 46; y += 4) g.hline(cx - 25, cx + 24, y, 'D');
+  // cupola, hatches, MG, antennas
+  g.ellipse(cx - 11, 22, 7, 4, 'b'); g.ellipse(cx - 11, 22, 5, 2, 'B'); g.hline(cx - 15, cx - 7, 20, 'H');
+  g.ellipse(cx + 12, 23, 6, 3, 'b'); g.ellipse(cx + 12, 23, 4, 1, 'B');
+  g.rect(cx - 17, 15, 9, 4, 'd'); g.rect(cx - 16, 12, 4, 4, 'D'); g.rect(cx - 18, 13, 8, 2, 'd');
+  for (const sx of [cx - 28, cx + 26]) { g.vline(sx, 2, 18, 'd'); g.px(sx, 2, 'e'); }
+  g.rect(cx - 30, 26, 10, 4, 'd'); g.rect(cx + 20, 26, 10, 4, 'd');
+  // barrel pointing down the lane (foreshortened) + muzzle brake
+  const by = d.extra === 'cannonLong' ? 0 : 8;
+  g.trap(cx - 3, cx + 2, by + 3, cx - 5, cx + 4, 22, 'b');
+  g.vline(cx - 3, by + 3, 22, 'd'); g.vline(cx + 2, by + 3, 22, 'N');
+  g.rect(cx - 5, by, 10, 4, 'd'); g.box(cx - 5, by, 10, 4, 'k');
+  g.rect(cx - 3, by + 1, 6, 2, 'K');
+  g.rect(cx - 7, 20, 14, 5, 'b'); g.hline(cx - 7, cx + 6, 20, 'H'); g.hline(cx - 7, cx + 6, 24, 'k');
   // camo patches
-  const cam = 'A';
-  g.ellipse(cx - 34, 68, 7, 4, cam); g.ellipse(cx + 26, 84, 6, 3, cam);
-  g.ellipse(cx + 18, 44, 5, 3, cam); g.ellipse(cx - 20, 33, 6, 3, cam);
-  if (d.number !== undefined) { g.rect(cx - 22, 42, 11, 8, 'w'); g.box(cx - 23, 41, 13, 10, 'k'); text(g, String(d.number).slice(0, 2), cx - 21, 43, 'K'); }
+  g.ellipse(cx - 24, 62, 8, 4, 'A'); g.ellipse(cx + 22, 84, 7, 3, 'A');
+  g.ellipse(cx + 16, 28, 6, 3, 'A'); g.ellipse(cx - 16, 40, 5, 2, 'A');
+  if (d.number !== undefined) {
+    const str = String(d.number).slice(0, 2);
+    g.box(cx - 24, 48, textW(str) + 5, 9, 'k', 'w');
+    text(g, str, cx - 22, 50, 'K');
+  }
   if (d.bumper === 'plow') {
-    for (let i = 0; i < 6; i++) {
-      g.hline(cx - 58 - 1 + i, cx - 50 + i, 100 - i, 'd');
-      g.hline(cx + 49 - i, cx + 57 - i, 100 - i, 'd');
+    for (let i = 0; i < 7; i++) {
+      g.hline(cx - 58 + i, cx - 48 + i, 96 - i, i % 2 ? 'e' : 'd');
+      g.hline(cx + 47 - i, cx + 57 - i, 96 - i, i % 2 ? 'e' : 'd');
     }
   }
   return g;
@@ -1079,45 +1083,44 @@ function apcGrid(def: VehicleDef): Grid {
   const d = def.details ?? {};
   const w = 112, h = 96, cx = w >> 1;
   const g = new Grid(w, h);
-  // six wheels: the two further axles are drawn smaller / higher (perspective)
-  for (const sgn of [-1, 1]) {
-    const o = sgn < 0 ? -1 : 1;
-    tyre(g, cx + o * 40 - (sgn < 0 ? 0 : 12), 58, 82, 12, sgn);
-    tyre(g, cx + o * 44 - (sgn < 0 ? 0 : 13), 62, 88, 13, sgn);
-    tyre(g, cx + o * 48 - (sgn < 0 ? 0 : 14), 66, h - 1, 14, sgn);
-  }
   // hull: sloped armour, wider at the bottom
-  g.trap(cx - 32, cx + 31, 22, cx - 44, cx + 43, 76, 'B');
-  g.hline(cx - 32, cx + 31, 22, 'H');
-  g.rect(cx - 44, 70, 88, 8, 'b');
-  for (let y = 22; y <= 78; y++) {
-    const t = (y - 22) / 54;
-    const hw = Math.round(32 + t * 12);
-    g.px(cx - hw, y, 'b'); g.px(cx + hw - 1, y, 'b');
+  g.trap(cx - 32, cx + 31, 20, cx - 42, cx + 41, 78, 'B');
+  g.hline(cx - 32, cx + 31, 20, 'H');
+  for (let y = 20; y <= 78; y++) {
+    const hw = Math.round(32 + ((y - 20) / 58) * 10);
+    g.px(cx - hw, y, 'b'); g.px(cx - hw + 1, y, 'b'); g.px(cx + hw - 1, y, 'b'); g.px(cx + hw - 2, y, 'b');
   }
-  // rear ramp + vision block + ladder
-  g.box(cx - 22, 30, 44, 44, 'k', 'b');
-  g.hline(cx - 21, cx + 20, 31, 'H');
-  g.rect(cx - 8, 34, 16, 8, 'k'); g.rect(cx - 7, 35, 14, 6, 'Z'); g.px(cx - 6, 36, 'z');
-  g.rect(cx - 3, 56, 6, 3, 'd');
-  for (let y = 44; y < 70; y += 6) { g.hline(cx - 30, cx - 24, y, 'd'); g.hline(cx + 23, cx + 29, y, 'd'); }
-  g.vline(cx - 30, 44, 68, 'd'); g.vline(cx - 24, 44, 68, 'd');
-  g.vline(cx + 23, 44, 68, 'd'); g.vline(cx + 29, 44, 68, 'd');
-  // accent band + stowage
-  g.hline(cx - 40, cx + 39, 66, 'A'); g.hline(cx - 40, cx + 39, 67, 'A');
-  g.circle(cx + 32, 40, 7, 'K'); g.circle(cx + 32, 40, 4, 'W'); g.px(cx + 32, 40, 'C');
-  g.box(cx - 40, 34, 14, 12, 'k', 'b');
-  // turret + gatling
-  g.trap(cx - 14, cx + 13, 8, cx - 18, cx + 17, 24, 'B');
-  g.hline(cx - 14, cx + 13, 8, 'H');
-  g.rect(cx - 6, 2, 12, 7, 'd');
-  for (let i = 0; i < 4; i++) g.vline(cx - 5 + i * 3, 0, 6, i % 2 ? 'D' : 'e');
-  g.rect(cx + 8, 10, 8, 6, 'b'); g.vline(cx + 17, 2, 10, 'd');
+  g.rect(cx - 42, 74, 84, 5, 'b');
+  // rear ramp, vision block, grab handles
+  g.box(cx - 22, 28, 44, 46, 'k', 'b');
+  g.hline(cx - 21, cx + 20, 29, 'H');
+  g.rect(cx - 9, 33, 18, 9, 'k'); g.rect(cx - 8, 34, 16, 7, 'Z'); g.px(cx - 7, 35, 'z'); g.px(cx - 6, 36, 'z');
+  g.rect(cx - 3, 58, 7, 3, 'd'); g.px(cx - 3, 58, 'e');
+  for (let y = 46; y < 72; y += 6) { g.hline(cx - 18, cx - 12, y, 'd'); g.hline(cx + 11, cx + 17, y, 'd'); }
+  // stowage bin + spare wheel + accent band
+  g.box(cx - 40, 30, 15, 13, 'k', 'b'); g.hline(cx - 39, cx - 26, 31, 'H');
+  g.circle(cx + 32, 37, 8, 'K'); g.circle(cx + 32, 37, 5, 'W'); g.circle(cx + 32, 37, 2, 'C');
+  g.hline(cx - 40, cx + 39, 68, 'A'); g.hline(cx - 40, cx + 39, 69, 'A');
+  // six wheels — the far axles ride smaller and higher (perspective)
+  for (const sgn of [-1, 1]) {
+    const out = (o: number, wd: number): number => (sgn < 0 ? cx - o : cx + o - wd);
+    tyre(g, out(44, 10), 54, 80, 10, sgn);
+    tyre(g, out(47, 12), 58, 86, 12, sgn);
+    tyre(g, out(50, 14), 62, h - 1, 14, sgn);
+  }
+  // turret + gatling pointing down the lane
+  g.trap(cx - 14, cx + 13, 6, cx - 18, cx + 17, 24, 'B');
+  g.hline(cx - 14, cx + 13, 6, 'H');
+  g.vline(cx - 18, 20, 24, 'b'); g.vline(cx + 17, 20, 24, 'b');
+  g.rect(cx - 7, 0, 14, 8, 'd'); g.box(cx - 7, 0, 14, 8, 'k');
+  for (let i = 0; i < 4; i++) g.vline(cx - 5 + i * 3, 1, 6, i % 2 ? 'D' : 'e');
+  g.rect(cx + 9, 10, 9, 7, 'b'); g.box(cx + 9, 10, 9, 7, 'k');
+  g.vline(cx + 20, 2, 14, 'd');
   // lights + plate
-  for (const sgn of [-1, 1]) boxLamp(g, sgn < 0 ? cx - 42 : cx + 26, 56, 16, 7, sgn < 0);
-  const s: Spec = { ...carSpec(def), w, h, plateCY: 60, plateW: 22, plateH: 8 };
+  for (const sgn of [-1, 1]) boxLamp(g, sgn < 0 ? cx - 40 : cx + 24, 52, 16, 7, sgn < 0);
+  const s: Spec = { ...carSpec(def), w, h, plateCY: 66, plateW: 22, plateH: 8 };
   plate(g, s, def);
-  if (d.bumper === 'bull') { g.rect(cx - 44, 78, 88, 3, 'C'); g.hline(cx - 43, cx + 42, 78, 'w'); }
+  if (d.bumper === 'bull') { g.rect(cx - 42, 79, 84, 4, 'C'); g.hline(cx - 41, cx + 40, 79, 'w'); for (const sx of [cx - 14, cx + 12]) g.rect(sx, 75, 2, 9, 'C'); }
   return g;
 }
 
