@@ -34,8 +34,8 @@ function mkPal(sky: [string, string], far: string, near: string, glow: string, g
 }
 type Quad = Record<TimeOfDay, CityPalette>;
 const GRASS: [string, string] = ['#20b040', '#1a9a36'];
-const GRASS_DUSK: [string, string] = ['#1e8a3a', '#187a30'];
-const GRASS_DAWN: [string, string] = ['#2a9a48', '#22883c'];
+const GRASS_DUSK: [string, string] = ['#176a2c', '#135c26'];
+const GRASS_DAWN: [string, string] = ['#1f7a38', '#1a6c30'];
 
 const PAL_TOKYO: Quad = {
   dawn: mkPal(['#3a2a86', '#ff9a66'], '#6a4a9a', '#2a2244', '#ffe870', GRASS_DAWN, '#ff9e86', ROAD_JP, 0.1, '#ffd060'),

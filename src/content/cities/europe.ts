@@ -267,8 +267,8 @@ function aurora(r: Renderer, y: number, t: number, tod: TimeOfDay): void {
   const a = isNight(tod) ? 1 : 0.35;
   for (let x = 0; x < 240; x += 2) {
     const w1 = Math.sin(x * 0.045 + t * 0.7), w2 = Math.sin(x * 0.021 - t * 0.42);
-    const top = y - 126 + Math.round(w1 * 10 + w2 * 7);
-    const hgt = 36 + Math.round(w2 * 12 + Math.sin(x * 0.08 + t) * 7);
+    const top = y - 100 + Math.round(w1 * 10 + w2 * 7);
+    const hgt = 44 + Math.round(w2 * 12 + Math.sin(x * 0.08 + t) * 7);
     for (let j = 0; j < hgt; j += 3) {
       if (top + j < 0) continue;
       const f = j / hgt;
@@ -329,9 +329,14 @@ function sign(r: Renderer, text: string, x: number, yy: number, color: string, s
   neon(r, text, x, yy, color, size, vertical, '#16161f', litc ? fl : 0.85);
 }
 
+/** Haze band just above the horizon — separates the parallax layers. */
+function hazeBand(r: Renderer, p: CityPalette, y: number, h: number, a: number, fog: number): void {
+  for (let i = 0; i < 3; i++) r.fillRect(0, y - h + Math.round((h * i) / 3), 240, Math.ceil(h / 3), p.haze, (a + fog * 0.2) * ((i + 1) / 3));
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
-// DÜSSELDORF — Rheinturm, Gehry's Neuer Zollhof, Rheinkniebrücke, Altstadt,
-// St. Lambertus' twisted spire, Landtag dome, a Rheinbahn tram.
+// DÜSSELDORF — Rheinturm (hero), Gehry's Neuer Zollhof, the Rheinkniebrücke,
+// Altstadt with St. Lambertus' twisted spire, the Landtag dome, a tram.
 // ═════════════════════════════════════════════════════════════════════════════
 const duesseldorf: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -339,112 +344,117 @@ const duesseldorf: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 38, y - 66, 12);
-  clouds(r, y - 52, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : p.sun ?? '#ffd060', 0.5), 9, 4, 16);
+  skyFurniture(r, p, tod, px, y, t, 98, y - 56, 12);
+  clouds(r, y - 56, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : (p.sun ?? '#ffd060'), 0.5), 9, 4, 18);
 
   // ── far: Ruhr industry across the river plain
-  skyrow(r, y - 15, o0, F, gl, tod, 3, 9, 9, 19, 12, 26, 0.35);
-  for (const cx of [20, 214]) {
+  skyrow(r, y - 16, o0, F, gl, tod, 3, 9, 9, 19, 12, 26, 0.35);
+  for (const cx of [16, 222]) {
     const x = cx + o0;
-    r.fillRect(x - 2, y - 42, 5, 27, F); r.fillRect(x - 3, y - 43, 7, 2, F);
-    beacon(r, x, y - 45, t, tod, cx * 0.3);
+    r.fillRect(x - 2, y - 44, 5, 28, F); r.fillRect(x - 3, y - 45, 7, 2, F);
+    beacon(r, x, y - 47, t, tod, cx * 0.3);
   }
-  r.fillRect(150 + o0, y - 30, 26, 15, F); dome(r, 163 + o0, y - 30, 13, 9, F); // gasometer
+  r.fillRect(190 + o0, y - 32, 26, 16, F); dome(r, 203 + o0, y - 32, 13, 9, F); // gasometer
+  hazeBand(r, p, y, 22, 0.13, fog);
 
   // ── the Rhine
-  water(r, y - 3, 12, A('#26486e', 0.2), litc ? gl : '#cfe6f6', t, px);
+  water(r, y - 4, 12, A('#26486e', 0.2), litc ? gl : '#cfe6f6', t, px);
 
-  const B = y - 14; // far bank / building base
-  // ── mid: Altstadt + Landtag + Rheinturm + Neuer Zollhof
-  houseRow(r, B, o1, -64, 96, M, A('#8a3626', 0.3), gl, tod, 5, 12, 22);
-  // St. Lambertus — nave, tower, twisted spire
-  const lx = 54 + o1;
-  r.fillRect(lx - 15, B - 17, 31, 17, M);
-  r.fillRect(lx - 6, B - 32, 13, 32, mix(M, '#ffffff', 0.06));
-  if (litc) { r.fillRect(lx - 2, B - 27, 3, 5, gl); r.fillRect(lx - 11, B - 13, 2, 5, gl); r.fillRect(lx + 9, B - 13, 2, 5, gl); }
-  else { r.fillRect(lx - 2, B - 27, 3, 5, mix(M, '#000000', 0.35)); }
+  const B = y - 15; // far bank
+  // ── mid: Altstadt, St. Lambertus, Landtag, Rheinturm, Neuer Zollhof
+  houseRow(r, B, o1, -64, 112, M, A('#8a3626', 0.3), gl, tod, 5, 12, 22);
+  houseRow(r, B, o1, 236, 304, M, A('#8a3626', 0.3), gl, tod, 6, 12, 20);
+  // St. Lambertus — nave, tower, famous twisted spire
   {
-    const sc = A('#4c5c5a', 0.2), hi = A('#8ba09c', 0.2), h = 22, top = B - 32;
+    const lx = 62 + o1;
+    r.fillRect(lx - 16, B - 18, 33, 18, M);
+    r.fillRect(lx - 6, B - 34, 13, 34, mix(M, '#ffffff', 0.08));
+    if (litc) { r.fillRect(lx - 2, B - 29, 3, 5, gl); r.fillRect(lx - 12, B - 14, 2, 5, gl); r.fillRect(lx + 10, B - 14, 2, 5, gl); }
+    else r.fillRect(lx - 2, B - 29, 3, 5, mix(M, '#000000', 0.35));
+    const sc = A('#4c5c5a', 0.2), hi = A('#90a6a2', 0.2), h = 24, top = B - 34;
     for (let j = 0; j < h; j++) {
       const f = j / h;
       const hw = Math.max(0, Math.round(5.5 * f));
-      const bend = Math.round(Math.sin((1 - f) * 2.5) * 3.4);
+      const bend = Math.round(Math.sin((1 - f) * 2.5) * 3.6);
       r.fillRect(lx + bend - hw, top - h + j, hw * 2 + 1, 1, j % 5 === 1 ? hi : sc);
     }
     r.fillRect(lx + 3, top - h - 3, 1, 3, sc); r.px(lx + 3, top - h - 4, A(P.gold, 0.1));
   }
-  // Landtag NRW — round parliament
-  const gx = 106 + o1;
-  r.fillRect(gx - 17, B - 11, 35, 11, M);
-  dome(r, gx, B - 11, 17, 8, mix(M, '#ffffff', 0.12));
-  for (let i = -14; i <= 14; i += 4) r.fillRect(gx + i, B - 8, 2, 4, litc ? gl : mix(M, '#000000', 0.3));
-  // Rheinturm — concrete needle, light-clock dot column, pod, antenna
+  // Landtag NRW — the round parliament
   {
-    const x = 152 + o1, con = A('#b6b6ae', 0.12);
-    r.fillRect(x - 7, B - 7, 15, 7, con);
-    for (let j = 7; j < 44; j++) {
-      const hw = Math.max(2, Math.round(4 - ((j - 7) / 37) * 1.6));
-      r.fillRect(x - hw, B - j, hw * 2 + 1, 1, j % 8 === 0 ? mix(con, '#ffffff', 0.16) : con);
+    const gx = 116 + o1;
+    r.fillRect(gx - 16, B - 10, 33, 10, M);
+    dome(r, gx, B - 10, 16, 8, mix(M, '#ffffff', 0.14));
+    for (let i = -13; i <= 13; i += 4) r.fillRect(gx + i, B - 7, 2, 4, litc ? gl : mix(M, '#000000', 0.3));
+  }
+  // Rheinturm — concrete needle, Lichtzeitpegel dot column, pod, antenna
+  {
+    const x = 156 + o1, con = A('#bcbcb2', 0.1);
+    r.fillRect(x - 8, B - 8, 17, 8, con);
+    for (let j = 8; j < 45; j++) {
+      const hw = Math.max(2, Math.round(5 - ((j - 8) / 37) * 2.2));
+      r.fillRect(x - hw, B - j, hw * 2 + 1, 1, j % 8 === 0 ? mix(con, '#ffffff', 0.18) : con);
     }
-    // Lichtzeitpegel: vertical column of light dots (the world's biggest clock)
     for (let k = 0; k < 9; k++) {
-      const yy = B - 11 - k * 4;
+      const yy = B - 12 - k * 4;
       const on = litc && (k < 3 || (k < 6 ? Math.floor(t) % 2 === 0 : Math.sin(t * 1.6 + k) > -0.1));
-      r.fillRect(x - 1, yy, 3, 2, on ? P.gold : mix(con, '#000000', 0.35));
+      r.fillRect(x - 1, yy, 3, 2, on ? P.gold : mix(con, '#000000', 0.38));
     }
-    r.fillRect(x - 8, B - 49, 17, 5, con);
-    if (litc) r.fillRect(x - 8, B - 48, 17, 1, gl);
-    r.fillRect(x - 6, B - 52, 13, 3, mix(con, '#000000', 0.2));
-    r.fillRect(x - 1, B - 58, 3, 6, con);
-    r.fillRect(x, B - 63, 1, 5, con);
-    beacon(r, x, B - 64, t, tod, 1.1);
+    r.fillRect(x - 9, B - 50, 19, 5, con);
+    if (litc) r.fillRect(x - 9, B - 49, 19, 1, gl);
+    r.fillRect(x - 7, B - 53, 15, 3, mix(con, '#000000', 0.22));
+    r.fillRect(x - 1, B - 60, 3, 7, con);
+    r.fillRect(x, B - 66, 1, 6, con);
+    beacon(r, x, B - 67, t, tod, 1.1);
   }
   // Neuer Zollhof — Gehry's three leaning blocks (white / red brick / silver)
   {
-    const cols: [string, number][] = [[A('#eceae4', 0.1), -1], [A('#a84a36', 0.12), 0.35], [A('#b6bcc6', 0.1), 1]];
+    const cols: [string, number][] = [[A('#eceae4', 0.08), -1], [A('#ac4e38', 0.1), 0.4], [A('#b8bec8', 0.08), 1]];
     cols.forEach(([col, lean], k) => {
-      const x = 190 + k * 16 + o1, w = 13, h = 30 + k * 4;
+      const x = 188 + k * 17 + o1, w = 14, h = 30 + k * 5;
       for (let j = 0; j < h; j++) {
         const f = j / h;
-        const dx = Math.round(Math.sin(f * 3.1) * 2.2 + lean * f * 2.6);
+        const dx = Math.round(Math.sin(f * 3.1) * 2.6 + lean * f * 3.4);
         const ww = w - Math.round(Math.abs(Math.sin(f * 2.3)) * 2);
         r.fillRect(x + dx, B - 1 - j, ww, 1, col);
+        if (j === h - 1) r.fillRect(x + dx, B - 2 - j, ww, 1, mix(col, '#ffffff', 0.25));
       }
       for (let j = 3; j < h - 2; j += 4) for (let i = 1; i < w - 3; i += 3) {
         if (h01(i * 7 + j, k + 3) > (litc ? 0.45 : 0.6)) continue;
-        const f = j / h, dx = Math.round(Math.sin(f * 3.1) * 2.2 + lean * f * 2.6);
-        r.fillRect(x + dx + i, B - 2 - j, 2, 2, litc ? gl : mix(col, '#000000', 0.4));
+        const f = j / h, dx = Math.round(Math.sin(f * 3.1) * 2.6 + lean * f * 3.4);
+        r.fillRect(x + dx + i, B - 2 - j, 2, 2, litc ? gl : mix(col, '#000000', 0.42));
       }
     });
   }
 
-  // ── near: Rheinkniebrücke, promenade, tram
+  // ── near: the Rheinkniebrücke, promenade, plane trees, a Rheinbahn tram
   {
-    const col = A('#dcdcd6', 0), cab = A('#c8ccd4', 0);
-    const dy = y - 6, pxl = 30 + o2;
-    r.fillRect(-64 + o2, dy, 200, 3, mix(col, '#000000', 0.3));
-    for (let x = -60 + o2; x < 136 + o2; x += 26) r.fillRect(x, dy + 3, 3, 4, mix(col, '#000000', 0.35));
-    r.fillRect(pxl - 1, dy - 44, 4, 44, col);
+    const col = A('#d6d6d0', 0), cab = A('#a8adb8', 0), dy = y - 9;
+    r.fillRect(-64 + o2, dy, 372, 3, mix(col, '#000000', 0.3));
+    r.fillRect(-64 + o2, dy - 1, 372, 1, col);
+    for (let x = -60 + o2; x < 300 + o2; x += 30) r.fillRect(x, dy + 3, 3, 6, mix(col, '#000000', 0.38));
+    const pxl = 28 + o2;
+    r.fillRect(pxl - 2, dy - 42, 5, 42, col);
+    r.fillRect(pxl - 3, dy - 44, 7, 2, mix(col, '#ffffff', 0.2));
     for (let k = 1; k <= 7; k++) {
-      const ty = dy - 42 + k * 2;
+      const ty = dy - 40 + k * 2;
       line(r, pxl, ty, pxl - k * 9, dy, cab);
       line(r, pxl + 2, ty, pxl + k * 9, dy, cab);
     }
-    if (litc) for (let x = -60 + o2; x < 136 + o2; x += 13) r.fillRect(x, dy - 2, 1, 2, gl);
-    beacon(r, pxl, dy - 46, t, tod, 2.2);
+    if (litc) for (let x = -60 + o2; x < 300 + o2; x += 14) r.fillRect(x, dy - 3, 1, 2, gl);
+    beacon(r, pxl, dy - 45, t, tod, 2.2);
   }
-  r.fillRect(0, y - 4, 240, 4, N);
-  r.fillRect(0, y - 5, 240, 1, mix(N, '#ffffff', 0.18));
-  for (let i = -1; i < 9; i++) {
-    const x = i * 30 + 12 + o2;
-    r.fillRect(x, y - 12, 2, 8, mix(N, '#000000', 0.2));
-    r.disc(x + 1, y - 14, 4, A('#1e6a2c', 0.15)); r.disc(x - 1, y - 13, 3, A('#2a8038', 0.15));
+  r.fillRect(0, y - 5, 240, 5, N);
+  r.fillRect(0, y - 6, 240, 1, mix(N, '#ffffff', 0.18));
+  for (let i = -1; i < 8; i++) {
+    const x = i * 34 + 14 + o2;
+    r.fillRect(x, y - 13, 2, 8, mix(N, '#000000', 0.25));
+    r.disc(x + 1, y - 15, 4, A('#1e6a2c', 0.12)); r.disc(x - 1, y - 14, 3, A('#2a8038', 0.12));
   }
-  tram(r, 176 + o2, y - 4, A(P.red, 0), A('#f0f0ea', 0), litc, gl);
+  tram(r, 148 + o2, y - 5, A(P.red, 0), A('#f0f0ea', 0), litc, gl);
 
-  sign(r, 'ALTBIER', 6 + o2, y - 44, P.gold, 8, tod, t, 1);
-  sign(r, 'KÖ', 226 + o2, y - 52, P.cyan, 9, tod, t, 2, true);
-  sign(r, 'ALTSTADT', 112 + o2, y - 27, P.red, 7, tod, t, 3);
+  sign(r, 'ALTBIER', 5 + o2, y - 73, P.gold, 8, tod, t, 1);
+  sign(r, 'RHEIN', 222 + o2, y - 74, P.cyan, 9, tod, t, 2, true);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -456,93 +466,92 @@ const berlin: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), night = isNight(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 196, y - 72, 12);
+  skyFurniture(r, p, tod, px, y, t, 96, y - 62, 12);
 
   // ── far: Plattenbau rows + Funkturm
-  skyrow(r, y - 13, o0, F, gl, tod, 7, 10, 12, 22, 14, 24, 0.4);
+  skyrow(r, y - 14, o0, F, gl, tod, 7, 10, 12, 22, 14, 24, 0.4);
   {
-    const x = 32 + o0;
+    const x = 30 + o0;
     for (let j = 0; j < 40; j++) {
       const hw = Math.max(1, Math.round(6 - (j / 40) * 5));
-      r.fillRect(x - hw, y - 13 - j, hw * 2 + 1, 1, j % 5 === 0 ? mix(F, '#ffffff', 0.12) : F);
+      r.fillRect(x - hw, y - 14 - j, hw * 2 + 1, 1, j % 5 === 0 ? mix(F, '#ffffff', 0.12) : F);
     }
-    r.fillRect(x - 5, y - 36, 11, 3, F);
-    beacon(r, x, y - 55, t, tod, 0.4);
+    r.fillRect(x - 5, y - 38, 11, 3, F);
+    beacon(r, x, y - 56, t, tod, 0.4);
   }
+  hazeBand(r, p, y, 20, 0.12, fog);
 
-  // ── Spree
-  water(r, y - 3, 10, A('#20405e', 0.2), litc ? gl : '#c6dcee', t, px);
-  const B = y - 12;
+  // ── the Spree
+  water(r, y - 3, 11, A('#20405e', 0.2), litc ? gl : '#c6dcee', t, px);
+  const B = y - 13;
 
-  // ── mid: dense Mitte blocks, Reichstag, Fernsehturm
+  // ── mid: dense Mitte blocks, the Reichstag, the Fernsehturm, the Tor
   skyrow(r, B, o1, M, gl, tod, 21, 11, 13, 26, 16, 30, 0.55);
-  // Reichstag — columned front + glass dome
   {
     const x = 56 + o1;
     r.fillRect(x - 22, B - 16, 45, 16, M);
-    r.fillRect(x - 24, B - 18, 49, 3, mix(M, '#ffffff', 0.12));
-    for (let i = -8; i <= 8; i += 4) r.fillRect(x + i, B - 15, 2, 12, mix(M, '#ffffff', 0.18));
-    spire(r, x, B - 18, 22, 5, mix(M, '#ffffff', 0.1));
-    r.fillRect(x - 8, B - 24, 17, 4, M);
-    dome(r, x, B - 24, 8, 9, litc ? mix(A('#9ad8f0', 0.1), gl, 0.35) : A('#bfe4f4', 0.1));
-    r.fillRect(x, B - 35, 1, 3, M);
-    for (const [dx, s] of [[-16, 1], [16, 1]] as const) { r.fillRect(x + dx - 3, B - 22, 6, 6 * s, M); }
+    r.fillRect(x - 24, B - 19, 49, 3, mix(M, '#ffffff', 0.14));
+    for (let i = -8; i <= 8; i += 4) r.fillRect(x + i, B - 15, 2, 12, mix(M, '#ffffff', 0.2));
+    spire(r, x, B - 19, 24, 5, mix(M, '#ffffff', 0.1));
+    r.fillRect(x - 9, B - 25, 19, 4, M);
+    dome(r, x, B - 25, 9, 10, litc ? mix(A('#9ad8f0', 0.1), gl, 0.4) : A('#c4e8f6', 0.1));
+    for (let k = -2; k <= 2; k++) line(r, x + k * 4, B - 26, x + k * 2, B - 34, mix(M, '#ffffff', 0.25));
+    r.fillRect(x, B - 38, 1, 4, M);
+    for (const dx of [-17, 17]) r.fillRect(x + dx - 3, B - 22, 7, 6, M);
   }
-  // Fernsehturm — sphere on a needle
   {
-    const x = 150 + o1, con = A('#c6c6c0', 0.08);
-    r.fillRect(x - 5, B - 6, 11, 6, con);
-    for (let j = 6; j < 40; j++) { const hw = Math.max(1, Math.round(3.5 - ((j - 6) / 34) * 1.6)); r.fillRect(x - hw, B - j, hw * 2 + 1, 1, con); }
-    const cy = B - 47;
-    r.disc(x, cy, 7, A('#d2d6dc', 0.06));
-    r.disc(x - 2, cy - 2, 3, mix(A('#d2d6dc', 0.06), '#ffffff', 0.35));
-    r.fillRect(x - 7, cy, 15, 1, mix(con, '#000000', 0.3));
-    if (litc) { r.fillRect(x - 6, cy - 2, 13, 1, gl); r.fillRect(x - 5, cy + 2, 11, 1, mix(gl, P.pink, night ? 0.6 : 0.2)); }
-    for (let j = 54; j < 66; j++) r.fillRect(x - 1, B - j, 3, 1, con);
-    r.fillRect(x, B - 72, 1, 6, con);
-    beacon(r, x, B - 73, t, tod, 0.8);
+    // Fernsehturm — sphere on a needle
+    const x = 152 + o1, con = A('#cacac4', 0.06);
+    r.fillRect(x - 6, B - 7, 13, 7, con);
+    for (let j = 7; j < 40; j++) { const hw = Math.max(2, Math.round(4 - ((j - 7) / 33) * 1.6)); r.fillRect(x - hw, B - j, hw * 2 + 1, 1, con); }
+    const cy = B - 48;
+    r.disc(x, cy, 8, A('#d6dae0', 0.05));
+    r.disc(x - 3, cy - 3, 3, mix(A('#d6dae0', 0.05), '#ffffff', 0.4));
+    r.fillRect(x - 8, cy, 17, 1, mix(con, '#000000', 0.3));
+    if (litc) { r.fillRect(x - 7, cy - 3, 15, 1, gl); r.fillRect(x - 6, cy + 3, 13, 1, mix(gl, P.pink, night ? 0.65 : 0.25)); }
+    for (let j = 56; j < 68; j++) r.fillRect(x - 1, B - j, 3, 1, con);
+    r.fillRect(x, B - 74, 1, 6, con);
+    beacon(r, x, B - 75, t, tod, 0.8);
   }
-  // Brandenburger Tor with the quadriga
   {
-    const x = 208 + o1, col = A('#cfcbbe', 0.14);
-    r.fillRect(x - 17, B - 17, 35, 17, col);
-    for (let i = 0; i < 5; i++) r.fillRect(x - 15 + i * 7, B - 15, 3, 15, mix(col, '#000000', 0.28));
-    r.fillRect(x - 19, B - 21, 39, 4, col);
-    r.fillRect(x - 5, B - 25, 11, 4, mix(col, '#000000', 0.15));
-    r.fillRect(x - 4, B - 27, 2, 2, A(P.gold, 0.1)); r.fillRect(x + 1, B - 27, 2, 2, A(P.gold, 0.1));
-    r.fillRect(x - 6, B - 26, 3, 1, A(P.gold, 0.1));
+    // Brandenburger Tor with the quadriga
+    const x = 212 + o1, col = A('#d2cec0', 0.12);
+    r.fillRect(x - 18, B - 18, 37, 18, col);
+    for (let i = 0; i < 5; i++) r.fillRect(x - 16 + i * 8, B - 16, 4, 16, mix(col, '#000000', 0.3));
+    r.fillRect(x - 20, B - 22, 41, 4, col);
+    r.fillRect(x - 6, B - 26, 13, 4, mix(col, '#000000', 0.12));
+    r.fillRect(x - 5, B - 29, 2, 3, A(P.gold, 0.08)); r.fillRect(x - 1, B - 29, 2, 3, A(P.gold, 0.08)); r.fillRect(x + 3, B - 29, 2, 3, A(P.gold, 0.08));
+    r.fillRect(x - 7, B - 30, 4, 1, A(P.gold, 0.08));
+    if (litc) r.fillRect(x - 20, B - 21, 41, 1, mix(gl, P.orange, 0.3));
   }
 
-  // ── near: Oberbaumbrücke + U-Bahn viaduct
+  // ── near: Oberbaumbrücke
   {
-    const brick = A('#8a3a30', 0.05), dy = y - 5;
-    r.fillRect(-64 + o2, dy, 174, 4, brick);
-    for (let x = -60 + o2; x < 110 + o2; x += 22) { r.fillRect(x, dy + 4, 4, 5, brick); archRow(r, x - 8, dy, 18, 4, 1, brick, mix(brick, '#000000', 0.45)); }
-    for (const tx of [18, 86]) {
+    const brick = A('#8e3c32', 0.02), dy = y - 6;
+    r.fillRect(-64 + o2, dy, 372, 4, brick);
+    r.fillRect(-64 + o2, dy - 9, 372, 3, mix(brick, '#000000', 0.22));
+    for (let x = -60 + o2; x < 300 + o2; x += 26) { r.fillRect(x, dy + 4, 4, 6, brick); archRow(r, x - 9, dy, 20, 4, 1, brick, mix(brick, '#000000', 0.5)); }
+    for (const tx of [26, 96]) {
       const x = tx + o2;
-      r.fillRect(x - 6, dy - 26, 13, 26, brick);
-      r.fillRect(x - 7, dy - 28, 15, 3, mix(brick, '#ffffff', 0.14));
-      if (litc) { r.fillRect(x - 3, dy - 22, 3, 4, gl); r.fillRect(x - 3, dy - 14, 3, 4, gl); }
-      spire(r, x, dy - 28, 13, 10, mix(brick, '#000000', 0.2));
-      r.fillRect(x, dy - 41, 1, 3, brick);
+      r.fillRect(x - 7, dy - 28, 15, 28, brick);
+      r.fillRect(x - 8, dy - 30, 17, 3, mix(brick, '#ffffff', 0.16));
+      if (litc) { r.fillRect(x - 5, dy - 25, 3, 4, gl); r.fillRect(x + 2, dy - 25, 3, 4, gl); r.fillRect(x - 5, dy - 17, 3, 4, gl); }
+      spire(r, x, dy - 30, 15, 11, mix(brick, '#000000', 0.22));
+      r.fillRect(x, dy - 44, 1, 3, brick);
     }
-    r.fillRect(-64 + o2, dy - 8, 174, 2, mix(brick, '#000000', 0.25));
   }
   r.fillRect(0, y - 3, 240, 3, N);
-  skyrow(r, y, o2, N, gl, tod, 31, 6, 16, 26, 10, 20, 0.6);
 
-  sign(r, 'BERLIN', 8 + o2, y - 52, P.pink, 10, tod, t, 1);
-  sign(r, 'TECHNO', 120 + o2, y - 32, P.cyan, 8, tod, t, 2);
-  sign(r, 'CURRYWURST', 96 + o2, y - 66, P.gold, 6, tod, t, 3);
+  sign(r, 'BERLIN', 5 + o2, y - 74, P.pink, 9, tod, t, 1);
+  sign(r, 'TECHNO', 172 + o2, y - 74, P.cyan, 9, tod, t, 2);
   if (night) for (let i = 0; i < 4; i++) {
     const bx = 20 + i * 58 + o2;
-    const a = 0.10 + 0.08 * Math.sin(t * 3 + i);
-    r.fillRect(bx, y - 76, 10, 74, i % 2 ? P.pink : P.purple, a);
+    r.fillRect(bx, y - 78, 10, 74, i % 2 ? P.pink : P.purple, 0.09 + 0.07 * Math.sin(t * 3 + i));
   }
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// MUNICH — Frauenkirche onion domes, Olympiaturm, BMW four-cylinder, Alps.
+// MUNICH — Frauenkirche onion domes, Olympiaturm + tent roof, BMW tower, Alps.
 // ═════════════════════════════════════════════════════════════════════════════
 const munich: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -550,83 +559,87 @@ const munich: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 56, y - 70, 13);
+  skyFurniture(r, p, tod, px, y, t, 112, y - 60, 13);
 
   // ── far: the Alps
   const snow = tod === 'night' ? '#aeb8d2' : tod === 'dusk' ? '#ffdce4' : '#f4f4f0';
   for (const [cx, w, h] of [[-20, 120, 44], [40, 110, 52], [110, 130, 62], [186, 120, 50], [250, 110, 42]] as const) {
-    mountain(r, cx + o0, y - 12, w, h, F, mix(snow, p.haze, 0.25 + fog * 0.3), 0.34);
+    mountain(r, cx + o0, y - 13, w, h, F, mix(snow, p.haze, 0.22 + fog * 0.3), 0.34);
   }
   for (const [cx, w, h] of [[6, 80, 30], [76, 90, 34], [160, 84, 28], [224, 80, 30]] as const) {
-    mountain(r, cx + o0, y - 8, w, h, mix(F, p.nearSky, 0.4));
+    mountain(r, cx + o0, y - 9, w, h, mix(F, p.nearSky, 0.42));
   }
+  hazeBand(r, p, y, 24, 0.14, fog);
 
-  const B = y - 8;
-  // ── mid: city roofs, Frauenkirche, Rathaus, Olympiaturm, BMW
+  const B = y - 9;
+  // ── mid: city roofs, Olympiapark, Frauenkirche, Rathaus, BMW
   houseRow(r, B, o1, -64, 304, M, A('#9a4a2e', 0.25), gl, tod, 9, 10, 18);
-  // Olympiaturm
   {
-    const x = 34 + o1, con = A('#c2c2bc', 0.12);
+    // Olympic tent roof — sagging cable canopies between masts
+    const cab = mix(M, '#ffffff', 0.3), base = B - 4;
+    for (let k = 0; k < 4; k++) {
+      const x0 = 4 + k * 18 + o1, x1 = x0 + 18, mh = 14 + (k % 2) * 4;
+      r.fillRect(x0, base - mh, 1, mh, cab);
+      for (let x = x0; x <= x1; x++) { const u = (x - x0) / (x1 - x0); r.px(x, base - mh + Math.round(Math.sin(u * Math.PI) * 9), cab); }
+    }
+    r.fillRect(4 + o1, base - 14, 1, 14, cab);
+  }
+  {
+    // Olympiaturm
+    const x = 38 + o1, con = A('#c6c6c0', 0.1);
     r.fillRect(x - 4, B - 6, 9, 6, con);
-    for (let j = 6; j < 40; j++) { const hw = Math.max(1, Math.round(3 - ((j - 6) / 34) * 1.2)); r.fillRect(x - hw, B - j, hw * 2 + 1, 1, con); }
-    r.fillRect(x - 7, B - 45, 15, 5, con);
-    if (litc) r.fillRect(x - 6, B - 44, 13, 1, gl);
-    r.fillRect(x - 5, B - 48, 11, 3, mix(con, '#000000', 0.2));
-    r.fillRect(x - 1, B - 56, 3, 8, con); r.fillRect(x, B - 62, 1, 6, con);
-    beacon(r, x, B - 63, t, tod, 0.5);
+    for (let j = 6; j < 42; j++) { const hw = Math.max(1, Math.round(3 - ((j - 6) / 36) * 1.2)); r.fillRect(x - hw, B - j, hw * 2 + 1, 1, con); }
+    r.fillRect(x - 8, B - 48, 17, 5, con);
+    if (litc) r.fillRect(x - 7, B - 47, 15, 1, gl);
+    r.fillRect(x - 5, B - 51, 11, 3, mix(con, '#000000', 0.2));
+    r.fillRect(x - 1, B - 59, 3, 8, con); r.fillRect(x, B - 66, 1, 7, con);
+    beacon(r, x, B - 67, t, tod, 0.5);
   }
-  // Olympic tent roof
-  for (let i = 0; i < 3; i++) {
-    const x0 = 8 + i * 20 + o1, hgt = 16 - i * 2;
-    for (let k = 0; k < 22; k++) {
-      const f = k / 21;
-      r.px(x0 + k, B - hgt + Math.round(Math.sin(f * Math.PI) * -hgt * 0.55) + Math.round(hgt * 0.55), mix(M, '#ffffff', 0.25));
-    }
-  }
-  // Frauenkirche — brick nave + twin towers with copper onion domes
   {
-    const x = 112 + o1, brick = A('#9a4636', 0.12), cop = A('#3aa88a', 0.12);
-    r.fillRect(x - 20, B - 22, 41, 22, brick);
-    for (let i = -16; i <= 16; i += 5) r.fillRect(x + i, B - 18, 3, 12, litc ? gl : mix(brick, '#000000', 0.3));
+    // Frauenkirche — brick nave + twin towers with copper onion domes
+    const x = 116 + o1, brick = A('#9a4636', 0.1), cop = A('#3aa88a', 0.1);
+    r.fillRect(x - 20, B - 23, 41, 23, brick);
+    for (let i = -16; i <= 16; i += 5) r.fillRect(x + i, B - 19, 3, 13, litc ? gl : mix(brick, '#000000', 0.32));
     for (const dx of [-15, 15]) {
-      r.fillRect(x + dx - 6, B - 38, 13, 38, brick);
-      r.fillRect(x + dx - 7, B - 40, 15, 2, mix(brick, '#ffffff', 0.15));
-      if (litc) r.fillRect(x + dx - 2, B - 34, 4, 5, gl);
-      onion(r, x + dx, B - 40, 7, 11, cop, mix(cop, '#ffffff', 0.3));
+      r.fillRect(x + dx - 7, B - 40, 15, 40, brick);
+      r.fillRect(x + dx - 8, B - 42, 17, 2, mix(brick, '#ffffff', 0.16));
+      if (litc) r.fillRect(x + dx - 2, B - 36, 4, 5, gl);
+      onion(r, x + dx, B - 42, 8, 12, cop, mix(cop, '#ffffff', 0.32));
     }
   }
-  // Neues Rathaus — gothic spire
   {
-    const x = 166 + o1, col = A('#8a8a7a', 0.16);
+    // Neues Rathaus — gothic spire
+    const x = 172 + o1, col = A('#8a8a7a', 0.14);
     r.fillRect(x - 13, B - 20, 27, 20, col);
     r.fillRect(x - 4, B - 40, 9, 20, col);
     if (litc) { r.fillRect(x - 2, B - 34, 4, 4, gl); r.fillRect(x - 10, B - 16, 3, 5, gl); r.fillRect(x + 8, B - 16, 3, 5, gl); }
-    spire(r, x, B - 40, 9, 14, mix(col, '#000000', 0.2));
-    r.px(x, B - 55, A(P.gold, 0.1));
+    spire(r, x, B - 40, 9, 15, mix(col, '#000000', 0.22));
+    r.px(x, B - 56, A(P.gold, 0.08));
   }
-  // BMW four-cylinder tower + bowl
   {
-    const x = 216 + o1, sil = A('#b0b6c0', 0.1);
-    for (let k = 0; k < 4; k++) r.fillRect(x - 9 + k * 5, B - 34, 4, 34, k % 2 ? mix(sil, '#000000', 0.18) : sil);
-    r.fillRect(x - 10, B - 38, 21, 4, sil);
-    if (litc) for (let j = B - 32; j < B - 4; j += 5) r.fillRect(x - 9, j, 19, 1, gl);
-    dome(r, x - 22, B, 11, 8, sil); r.fillRect(x - 33, B - 4, 23, 4, mix(sil, '#000000', 0.2));
+    // BMW four-cylinder tower + the bowl
+    const x = 220 + o1, sil = A('#b4bac4', 0.08);
+    for (let k = 0; k < 4; k++) r.fillRect(x - 10 + k * 6, B - 36, 5, 36, k % 2 ? mix(sil, '#000000', 0.2) : sil);
+    r.fillRect(x - 11, B - 40, 24, 4, sil);
+    if (litc) for (let j = B - 33; j < B - 4; j += 5) r.fillRect(x - 10, j, 22, 1, gl);
+    dome(r, x - 24, B, 12, 9, sil); r.fillRect(x - 36, B - 4, 25, 4, mix(sil, '#000000', 0.22));
   }
 
   // ── near: pines and beer-garden chestnuts
-  r.fillRect(0, y - 4, 240, 4, N);
-  for (let i = -1; i < 10; i++) {
-    const x = i * 27 + 8 + o2, h = 16 + (i % 3) * 5;
-    if (i % 2) { spire(r, x, y - 3, 13, h, A('#1c5a34', 0.1)); r.fillRect(x - 1, y - 4, 3, 4, A('#3a2a1a', 0.1)); }
-    else { r.disc(x, y - 10 - h * 0.2, 6, A('#2a7a38', 0.12)); r.fillRect(x - 1, y - 11, 3, 8, A('#3a2a1a', 0.1)); }
+  r.fillRect(0, y - 9, 240, 9, N);
+  r.fillRect(0, y - 10, 240, 1, mix(N, '#ffffff', 0.15));
+  for (let i = -1; i < 9; i++) {
+    const x = i * 30 + 8 + o2, h = 16 + (i % 3) * 5;
+    if (i % 2) { spire(r, x, y - 7, 14, h, A('#1c5a34', 0.08)); r.fillRect(x - 1, y - 8, 3, 5, A('#3a2a1a', 0.08)); }
+    else { r.disc(x, y - 15 - (i % 3), 7, A('#2a7a38', 0.1)); r.fillRect(x - 1, y - 14, 3, 8, A('#3a2a1a', 0.08)); }
   }
-  sign(r, 'BREZN', 10 + o2, y - 40, P.gold, 9, tod, t, 1);
-  sign(r, 'MÜNCHEN', 140 + o2, y - 60, P.cyan, 8, tod, t, 2);
+  sign(r, 'BREZN', 5 + o2, y - 74, P.gold, 9, tod, t, 1);
+  sign(r, 'ALPEN', 178 + o2, y - 74, P.cyan, 9, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// ISTANBUL — Hagia Sophia, Blue Mosque, Galata Tower, Bosphorus Bridge,
-// ferries, seagulls, cypresses.
+// ISTANBUL — Hagia Sophia, the Blue Mosque, Galata Tower, the Bosphorus Bridge
+// over the strait with ferries, seagulls and cypresses.
 // ═════════════════════════════════════════════════════════════════════════════
 const istanbul: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -634,84 +647,85 @@ const istanbul: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 150, y - 58, 15);
-  clouds(r, y - 46, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : (p.sun ?? '#ffb432'), 0.55), 4, 4, 14);
+  skyFurniture(r, p, tod, px, y, t, 150, y - 56, 15);
+  clouds(r, y - 48, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : (p.sun ?? '#ffb432'), 0.55), 4, 4, 14);
 
-  // ── far: Asian shore hills with distant domes and minarets
-  for (const [cx, w, h] of [[-10, 120, 26], [70, 130, 32], [170, 140, 30], [260, 120, 26]] as const) mountain(r, cx + o0, y - 14, w, h, F);
-  skyrow(r, y - 14, o0, F, gl, tod, 13, 8, 14, 10, 20, 0.35);
+  // ── far: the Asian shore
+  for (const [cx, w, h] of [[-10, 120, 26], [70, 130, 32], [170, 140, 30], [260, 120, 26]] as const) mountain(r, cx + o0, y - 17, w, h, F);
+  skyrow(r, y - 17, o0, F, gl, tod, 13, 8, 14, 10, 20, 0.35);
   for (const mx of [24, 92, 150, 208, 262]) {
     const x = mx + o0;
-    dome(r, x, y - 14, 7, 5, F);
-    r.fillRect(x + 9, y - 34, 2, 20, F); r.px(x + 9, y - 36, F);
+    dome(r, x, y - 17, 7, 5, F);
+    r.fillRect(x + 9, y - 37, 2, 20, F); r.px(x + 9, y - 39, F);
   }
+  hazeBand(r, p, y, 22, 0.14, fog);
 
   // ── the Bosphorus
-  water(r, y - 2, 14, A('#1a4a6e', 0.18), litc ? gl : '#b8ecec', t, px);
-  const B = y - 16; // historic peninsula, raised above the water
+  water(r, y - 2, 16, A('#1a4a6e', 0.18), litc ? gl : '#b8ecec', t, px);
+  const B = y - 18; // the historic peninsula
 
   // ── mid: the old city
   houseRow(r, B, o1, -64, 304, M, A('#8a4a36', 0.3), gl, tod, 15, 8, 16);
-  // Galata Tower
   {
-    const x = 30 + o1, stone = A('#c8b48e', 0.12);
-    r.fillRect(x - 6, B - 30, 13, 30, stone);
-    r.fillRect(x - 7, B - 33, 15, 3, mix(stone, '#ffffff', 0.2));
-    if (litc) { r.fillRect(x - 6, B - 32, 13, 1, gl); for (let i = -4; i <= 4; i += 4) r.fillRect(x + i, B - 26, 2, 3, gl); }
-    r.fillRect(x - 5, B - 36, 11, 3, stone);
-    spire(r, x, B - 36, 11, 13, A('#a03a2a', 0.1));
-    r.px(x, B - 50, A(P.gold, 0.1));
+    // Galata Tower
+    const x = 30 + o1, stone = A('#c8b48e', 0.1);
+    r.fillRect(x - 7, B - 32, 15, 32, stone);
+    r.fillRect(x - 8, B - 35, 17, 3, mix(stone, '#ffffff', 0.22));
+    if (litc) { r.fillRect(x - 7, B - 34, 15, 1, gl); for (let i = -4; i <= 4; i += 4) r.fillRect(x + i, B - 28, 2, 3, gl); }
+    r.fillRect(x - 6, B - 38, 13, 3, stone);
+    spire(r, x, B - 38, 13, 14, A('#a03a2a', 0.08));
+    r.px(x, B - 53, A(P.gold, 0.08));
   }
-  // Hagia Sophia — big lead dome, half domes, four minarets
   {
-    const x = 106 + o1, body = A('#c06a46', 0.12), lead = A('#98a0a8', 0.12);
+    // Hagia Sophia
+    const x = 106 + o1, body = A('#c06a46', 0.1), lead = A('#98a0a8', 0.1);
     r.fillRect(x - 26, B - 17, 53, 17, body);
     dome(r, x - 19, B - 17, 11, 8, lead); dome(r, x + 19, B - 17, 11, 8, lead);
     r.fillRect(x - 14, B - 25, 29, 8, body);
     if (litc) for (let i = -12; i <= 12; i += 5) r.fillRect(x + i, B - 23, 2, 4, gl);
     dome(r, x, B - 25, 15, 12, lead);
     r.fillRect(x - 10, B - 26, 21, 1, mix(lead, '#000000', 0.25));
-    r.fillRect(x, B - 40, 1, 3, A(P.gold, 0.1));
-    for (const [dx, mh] of [[-32, 44], [32, 44], [-22, 37], [22, 37]] as const) minaret(r, x + dx, B, mh, A('#cfc0a2', 0.12), A('#8a8a80', 0.12), litc, gl);
+    r.fillRect(x, B - 40, 1, 3, A(P.gold, 0.08));
+    for (const [dx, mh] of [[-32, 44], [32, 44], [-22, 37], [22, 37]] as const) minaret(r, x + dx, B, mh, A('#cfc0a2', 0.1), A('#8a8a80', 0.1), litc, gl);
   }
-  // Blue Mosque — cascading domes, six minarets
   {
-    const x = 188 + o1, body = A('#93a2b8', 0.12), dm = A('#6e8098', 0.12);
+    // the Blue Mosque
+    const x = 190 + o1, body = A('#93a2b8', 0.1), dm = A('#6e8098', 0.1);
     r.fillRect(x - 22, B - 13, 45, 13, body);
     dome(r, x - 16, B - 13, 8, 6, dm); dome(r, x + 16, B - 13, 8, 6, dm);
     dome(r, x - 9, B - 17, 8, 7, dm); dome(r, x + 9, B - 17, 8, 7, dm);
     r.fillRect(x - 11, B - 19, 23, 6, body);
     if (litc) for (let i = -9; i <= 9; i += 5) r.fillRect(x + i, B - 18, 2, 3, gl);
     dome(r, x, B - 19, 12, 10, dm);
-    r.fillRect(x, B - 32, 1, 3, A(P.gold, 0.1));
-    for (const [dx, mh] of [[-28, 42], [28, 42], [-18, 34], [18, 34], [-34, 30], [34, 30]] as const) minaret(r, x + dx, B, mh, A('#c0c4c0', 0.12), A('#7a7a78', 0.12), litc, gl);
+    r.fillRect(x, B - 32, 1, 3, A(P.gold, 0.08));
+    for (const [dx, mh] of [[-28, 42], [28, 42], [-18, 34], [18, 34], [-34, 30], [34, 30]] as const) minaret(r, x + dx, B, mh, A('#c0c4c0', 0.1), A('#7a7a78', 0.1), litc, gl);
   }
 
-  // ── near: Bosphorus Bridge, ferries, gulls, cypresses
+  // ── near: the Bosphorus Bridge, ferries, gulls, cypresses
   {
-    const col = A('#43454f', 0), cab = A('#8e929c', 0);
-    bridge(r, -68 + o2, 308 + o2, y - 7, 30, col, cab);
-    if (litc) for (let x = -60 + o2; x < 300 + o2; x += 12) r.fillRect(x, y - 9, 2, 1, mix(gl, P.cyan, isNight(tod) ? 0.5 : 0.1));
-    beacon(r, 26 + o2, y - 38, t, tod, 0.3); beacon(r, 206 + o2, y - 38, t, tod, 1.7);
+    const col = A('#545762', 0), cab = A('#9aa0ac', 0);
+    bridge(r, -68 + o2, 308 + o2, y - 9, 32, col, cab);
+    r.fillRect(-68 + o2, y - 9, 376, 1, mix(col, '#ffffff', 0.25));
+    if (litc) for (let x = -60 + o2; x < 300 + o2; x += 12) r.fillRect(x, y - 11, 2, 1, mix(gl, P.cyan, isNight(tod) ? 0.45 : 0.1));
+    beacon(r, 25 + o2, y - 42, t, tod, 0.3); beacon(r, 205 + o2, y - 42, t, tod, 1.7);
   }
   for (let i = 0; i < 2; i++) {
-    const bx = Math.round(((t * (7 + i * 4) + i * 150) % 300) - 30) + o2;
-    boat(r, bx, y - 5, A('#e6e6de', 0), A(P.red, 0), litc, gl, i === 0);
-    for (let k = 1; k < 4; k++) r.fillRect(bx - k * 4, y - 4, 3, 1, mix(A('#1a4a6e', 0.18), '#ffffff', 0.35));
+    const bx = Math.round(((t * (7 + i * 4) + i * 150) % 320) - 40) + o2;
+    boat(r, bx, y - 4, A('#e6e6de', 0), A(P.red, 0), litc, gl, i === 0);
+    for (let k = 1; k < 4; k++) r.fillRect(bx - k * 4, y - 3, 3, 1, mix(A('#1a4a6e', 0.18), '#ffffff', 0.4));
   }
-  r.fillRect(0, y - 3, 240, 3, N);
-  for (let i = -1; i < 9; i++) {
-    const x = i * 30 + 14 + o2, h = 18 + (i % 3) * 5;
-    spire(r, x, y - 2, 9, h, A('#1c4a30', 0.1));
-    r.fillRect(x - 1, y - 3, 3, 3, A('#3a2a1a', 0.1));
+  r.fillRect(0, y - 2, 240, 2, N);
+  for (const x0 of [-10, 6, 18, 216, 230, 244]) {
+    const x = x0 + o2, h = 14 + ((x0 + 40) % 3) * 4;
+    spire(r, x, y - 1, 9, h, A('#1c4a30', 0.08));
+    r.fillRect(x - 1, y - 2, 3, 2, A('#3a2a1a', 0.08));
   }
   for (let i = 0; i < 5; i++) {
     const gx = Math.round(((t * 11 + i * 63) % 300) - 30);
-    gull(r, gx, y - 46 - Math.round(Math.sin(t * 0.8 + i) * 10), t, litc ? '#e8e8f0' : '#f8f8f4', i);
+    gull(r, gx, y - 50 - Math.round(Math.sin(t * 0.8 + i) * 10), t, litc ? '#e8e8f0' : '#f8f8f4', i);
   }
-  sign(r, 'BOĞAZ', 6 + o2, y - 40, P.cyan, 9, tod, t, 1);
-  sign(r, 'ÇAY', 224 + o2, y - 52, P.gold, 10, tod, t, 2, true);
-  sign(r, 'KEBAP', 128 + o2, y - 30, P.red, 8, tod, t, 3);
+  sign(r, 'BOĞAZ', 5 + o2, y - 73, P.cyan, 9, tod, t, 1);
+  sign(r, 'ÇAY', 224 + o2, y - 74, P.gold, 10, tod, t, 2, true);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -723,74 +737,73 @@ const paris: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), night = isNight(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 186, y - 64, 13);
+  skyFurniture(r, p, tod, px, y, t, 60, y - 58, 13);
   clouds(r, y - 50, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : '#ffb0c8', 0.5), 6, 4, 14);
 
-  // ── far: Montmartre with Sacré-Cœur, Montparnasse slab
-  mountain(r, 44 + o0, y - 12, 130, 30, F);
+  // ── far: Montmartre with Sacré-Cœur, the Montparnasse slab
+  mountain(r, 48 + o0, y - 13, 140, 32, F);
   {
-    const x = 44 + o0, st = mix(A('#e8e6de', 0.3), F, 0.35);
-    r.fillRect(x - 13, B0(y) - 6, 27, 12, st);
-    dome(r, x - 9, B0(y) - 6, 5, 7, st); dome(r, x + 9, B0(y) - 6, 5, 7, st);
-    r.fillRect(x - 5, B0(y) - 12, 11, 4, st);
-    dome(r, x, B0(y) - 12, 7, 12, st);
-    r.fillRect(x, B0(y) - 27, 1, 3, st);
+    const x = 48 + o0, hb = y - 34, st = mix(A('#e8e6de', 0.3), F, 0.3);
+    r.fillRect(x - 14, hb - 7, 29, 13, st);
+    dome(r, x - 10, hb - 7, 5, 7, st); dome(r, x + 10, hb - 7, 5, 7, st);
+    r.fillRect(x - 5, hb - 13, 11, 4, st);
+    dome(r, x, hb - 13, 7, 12, st);
+    r.fillRect(x, hb - 28, 1, 3, st);
   }
   {
-    const x = 196 + o0;
-    block(r, x - 9, y - 12, 19, 46, F, gl, tod, 7, 0.5);
+    const x = 202 + o0;
+    block(r, x - 9, y - 13, 19, 44, F, gl, tod, 7, 0.5);
     r.fillRect(x - 9, y - 58, 19, 2, mix(F, '#000000', 0.25));
   }
-  skyrow(r, y - 12, o0, F, gl, tod, 5, 10, 16, 10, 18, 0.4);
+  skyrow(r, y - 13, o0, F, gl, tod, 5, 10, 16, 10, 18, 0.4);
+  hazeBand(r, p, y, 20, 0.12, fog);
 
   // ── the Seine
-  water(r, y - 3, 10, A('#2a4a66', 0.2), litc ? gl : '#cfe0ee', t, px);
-  const B = y - 12;
+  water(r, y - 4, 10, A('#2a4a66', 0.2), litc ? gl : '#cfe0ee', t, px);
+  const B = y - 13;
 
-  // ── mid: Haussmann rooftops + Arc + Eiffel
+  // ── mid: Haussmann rooftops, the Arc, the Eiffel Tower
   {
-    // zinc roofs with chimney pots
     let x = -64 + o1, i = 0;
     while (x < 304 + o1) {
       const w = 16 + Math.round(h01(i, 4) * 10), h = 16 + Math.round(h01(i + 5, 4) * 6);
       r.fillRect(x, B - h, w, h, M);
-      for (let j = 0; j < 5; j++) r.fillRect(x + j, B - h - 5 + j, w - j * 2, 1, A('#5a6068', 0.3));
+      for (let j = 0; j < 5; j++) r.fillRect(x + j, B - h - 5 + j, Math.max(1, w - j * 2), 1, A('#5a6068', 0.3));
       for (let wy = B - h + 3; wy < B - 3; wy += 5) for (let wx = x + 2; wx < x + w - 3; wx += 5) {
-        r.fillRect(wx, wy, 3, 3, litc && h01(wx + wy, 4) < 0.6 ? gl : mix(M, '#000000', 0.3));
+        r.fillRect(wx, wy, 3, 3, litc && h01(wx + wy, 4) < 0.6 ? gl : mix(M, '#000000', 0.32));
       }
       for (let c = 0; c < 3; c++) if (h01(i * 3 + c, 6) < 0.6) r.fillRect(x + 3 + c * 6, B - h - 8, 2, 4, A('#8a5a4a', 0.25));
       x += w + 1; i++;
     }
   }
-  // Arc de Triomphe
   {
-    const x = 46 + o1, st = A('#ded8c8', 0.14);
-    r.fillRect(x - 14, B - 22, 29, 22, st);
-    archRow(r, x - 14, B, 29, 22, 1, st, mix(st, '#000000', 0.5));
-    r.fillRect(x - 16, B - 26, 33, 4, st);
-    r.fillRect(x - 14, B - 28, 29, 2, mix(st, '#ffffff', 0.15));
-    if (litc) { r.fillRect(x - 16, B - 22, 33, 1, gl); r.fillRect(x - 12, B - 1, 25, 1, mix(gl, P.orange, 0.4)); }
+    // Arc de Triomphe
+    const x = 42 + o1, st = A('#e2dccc', 0.12);
+    r.fillRect(x - 15, B - 24, 31, 24, st);
+    archRow(r, x - 15, B, 31, 24, 1, st, mix(st, '#000000', 0.5));
+    r.fillRect(x - 17, B - 28, 35, 4, st);
+    r.fillRect(x - 15, B - 30, 31, 2, mix(st, '#ffffff', 0.18));
+    if (litc) { r.fillRect(x - 17, B - 24, 35, 1, gl); r.fillRect(x - 13, B - 1, 27, 1, mix(gl, P.orange, 0.4)); }
   }
-  // Eiffel Tower
   {
-    const x = 132 + o1, ir = A('#8a6a4a', 0.08), h = 66;
+    // Eiffel Tower
+    const x = 134 + o1, ir = A('#8a6a4a', 0.06), h = 66;
     for (let j = 0; j < h; j++) {
       const f = j / h;
       const hw = Math.max(1, Math.round(2 + 15 * Math.pow(1 - f, 2.6)));
       if (hw >= 4) {
         r.fillRect(x - hw, B - j, 2, 1, ir); r.fillRect(x + hw - 1, B - j, 2, 1, ir);
-        if (j % 5 === 0) r.fillRect(x - hw, B - j, hw * 2, 1, mix(ir, '#000000', 0.15));
-        if (j < 22 && j % 3 === 0) { const k = Math.round(hw * 0.5); r.fillRect(x - k, B - j, 2, 1, mix(ir, '#000000', 0.2)); r.fillRect(x + k - 1, B - j, 2, 1, mix(ir, '#000000', 0.2)); }
+        if (j % 6 === 0) r.fillRect(x - hw, B - j, hw * 2, 1, mix(ir, '#000000', 0.18));
+        if (j > 3 && j < 20 && j % 3 === 0) { const k = Math.round(hw * 0.45); r.fillRect(x - k, B - j, 2, 1, mix(ir, '#000000', 0.2)); r.fillRect(x + k - 1, B - j, 2, 1, mix(ir, '#000000', 0.2)); }
       } else r.fillRect(x - hw, B - j, hw * 2 + 1, 1, ir);
     }
-    // arch between the legs + two platforms
-    for (let k = 0; k <= 14; k++) { const u = (k - 7) / 7; r.px(x + k - 7, B - 12 + Math.round(u * u * 6), ir); }
-    r.fillRect(x - 15, B - 21, 31, 3, ir); r.fillRect(x - 9, B - 41, 19, 3, ir);
+    for (let k = -8; k <= 8; k++) r.px(x + k, B - 17 + Math.round((k * k) / 12), ir);
+    r.fillRect(x - 16, B - 22, 33, 3, ir); r.fillRect(x - 9, B - 42, 19, 3, ir);
     r.fillRect(x - 1, B - h - 6, 3, 6, ir); r.fillRect(x, B - h - 10, 1, 4, ir);
     if (litc) {
-      r.fillRect(x - 14, B - 20, 29, 1, gl); r.fillRect(x - 8, B - 40, 17, 1, gl);
+      r.fillRect(x - 15, B - 21, 31, 1, gl); r.fillRect(x - 8, B - 41, 17, 1, gl);
       for (let j = 4; j < h; j += 7) r.fillRect(x - 1, B - j, 3, 1, mix(gl, P.orange, 0.35));
-      if (night) for (let k = 0; k < 14; k++) {
+      if (night) for (let k = 0; k < 16; k++) {
         const j = Math.floor(h01(k + Math.floor(t * 8), 9) * h);
         const hw = Math.max(1, Math.round(2 + 15 * Math.pow(1 - j / h, 2.6)));
         r.px(x - hw + Math.round(h01(k, 11) * hw * 2), B - j, P.white);
@@ -799,27 +812,24 @@ const paris: SkylineFn = (r, p, tod, px, y, t, fog) => {
     beacon(r, x, B - h - 11, t, tod, 1.4);
   }
 
-  // ── near: quay, bateau-mouche, plane trees
-  r.fillRect(0, y - 4, 240, 4, N);
-  r.fillRect(0, y - 5, 240, 1, mix(N, '#ffffff', 0.2));
+  // ── near: the quay, a bateau-mouche, plane trees
+  r.fillRect(0, y - 5, 240, 5, N);
+  r.fillRect(0, y - 6, 240, 1, mix(N, '#ffffff', 0.2));
   {
-    const bx = Math.round(((t * 9) % 300) - 30) + o2;
-    boat(r, bx, y - 5, A('#e8e4d8', 0), A('#2a4a66', 0), litc, gl, true);
+    const bx = Math.round(((t * 9) % 320) - 40) + o2;
+    boat(r, bx, y - 6, A('#e8e4d8', 0), A('#2a4a66', 0), litc, gl, true);
   }
-  for (let i = -1; i < 9; i++) {
-    const x = i * 29 + 10 + o2, h = 13 + (i % 3) * 4;
-    r.fillRect(x - 1, y - 4 - h, 3, h, A('#4a3a28', 0.1));
-    r.disc(x, y - 6 - h, 6, A('#2a6a34', 0.12)); r.disc(x - 3, y - 4 - h, 4, A('#347a3c', 0.12));
+  for (let i = -1; i < 8; i++) {
+    const x = i * 34 + 12 + o2, h = 12 + (i % 3) * 4;
+    r.fillRect(x - 1, y - 5 - h, 3, h, A('#4a3a28', 0.08));
+    r.disc(x, y - 7 - h, 6, A('#2a6a34', 0.1)); r.disc(x - 3, y - 5 - h, 4, A('#347a3c', 0.1));
   }
-  sign(r, 'CAFÉ', 8 + o2, y - 36, P.red, 9, tod, t, 1);
-  sign(r, 'MÉTRO', 194 + o2, y - 30, P.gold, 8, tod, t, 2);
-  sign(r, 'PARIS', 78 + o2, y - 70, P.pink, 8, tod, t, 3);
+  sign(r, 'CAFÉ', 5 + o2, y - 74, P.red, 10, tod, t, 1);
+  sign(r, 'MÉTRO', 182 + o2, y - 74, P.gold, 9, tod, t, 2);
 };
-/** Sacré-Cœur base helper (top of the Montmartre hill). */
-function B0(y: number): number { return y - 30; }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// LONDON — Elizabeth Tower, London Eye, Tower Bridge, The Shard, the Gherkin.
+// LONDON — Elizabeth Tower, the London Eye, Tower Bridge, the Shard, the Gherkin.
 // ═════════════════════════════════════════════════════════════════════════════
 const london: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -827,93 +837,91 @@ const london: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 40, y - 68, 11);
-  clouds(r, y - 58, px * 0.3 + t * 2.5, mix(p.haze, '#ffffff', tod === 'day' ? 0.55 : 0.25), 11, 6, 22);
+  skyFurniture(r, p, tod, px, y, t, 112, y - 66, 11);
+  clouds(r, y - 56, px * 0.3 + t * 2.5, mix(p.haze, '#ffffff', tod === 'day' ? 0.55 : 0.25), 11, 6, 22);
 
-  // ── far: chimneys, St Paul's, generic blocks
-  skyrow(r, y - 13, o0, F, gl, tod, 23, 9, 15, 12, 22, 0.4);
+  // ── far: chimneys, St Paul's, blocks
+  skyrow(r, y - 14, o0, F, gl, tod, 23, 9, 15, 12, 22, 0.4);
   {
-    const x = 62 + o0, st = mix(A('#d8d4c8', 0.3), F, 0.3);
-    r.fillRect(x - 16, y - 25, 33, 12, st);
-    r.fillRect(x - 7, y - 32, 15, 7, st);
-    dome(r, x, y - 32, 9, 11, st);
-    r.fillRect(x - 2, y - 46, 5, 3, st); r.fillRect(x, y - 49, 1, 3, st);
-    for (const dx of [-14, 14]) { r.fillRect(x + dx - 3, y - 34, 6, 9, st); spire(r, x + dx, y - 34, 6, 5, st); }
+    const x = 66 + o0, st = mix(A('#d8d4c8', 0.3), F, 0.3);
+    r.fillRect(x - 16, y - 26, 33, 12, st);
+    r.fillRect(x - 7, y - 33, 15, 7, st);
+    dome(r, x, y - 33, 9, 11, st);
+    r.fillRect(x - 2, y - 47, 5, 3, st); r.fillRect(x, y - 50, 1, 3, st);
+    for (const dx of [-14, 14]) { r.fillRect(x + dx - 3, y - 35, 6, 9, st); spire(r, x + dx, y - 35, 6, 5, st); }
   }
-  for (const cx of [200, 226]) { const x = cx + o0; r.fillRect(x - 2, y - 40, 5, 27, F); beacon(r, x, y - 42, t, tod, cx * 0.2); }
+  for (const cx of [206, 228]) { const x = cx + o0; r.fillRect(x - 2, y - 42, 5, 28, F); beacon(r, x, y - 44, t, tod, cx * 0.2); }
+  hazeBand(r, p, y, 22, 0.14, fog);
 
   // ── the Thames
-  water(r, y - 2, 11, A('#2a4454', 0.2), litc ? gl : '#c8d8e0', t, px);
-  const B = y - 13;
+  water(r, y - 3, 12, A('#2a4454', 0.2), litc ? gl : '#c8d8e0', t, px);
+  const B = y - 14;
 
-  // ── mid: The Shard, the Gherkin, Elizabeth Tower, the Eye
+  // ── mid: the Shard, the Gherkin, the Elizabeth Tower, the Eye
   skyrow(r, B, o1, M, gl, tod, 29, 10, 14, 20, 14, 26, 0.5);
   {
-    // The Shard
-    const x = 38 + o1, gls = A('#9fb4c4', 0.08);
+    const x = 34 + o1, gls = A('#9fb4c4', 0.06);
     for (let j = 0; j < 62; j++) {
       const hw = Math.max(1, Math.round(8 * (1 - j / 62) + 0.5));
-      r.fillRect(x - hw, B - j, hw * 2 + 1, 1, j % 6 === 0 ? mix(gls, '#ffffff', 0.18) : gls);
+      r.fillRect(x - hw, B - j, hw * 2 + 1, 1, j % 6 === 0 ? mix(gls, '#ffffff', 0.2) : gls);
       if (litc && j % 5 === 2) r.fillRect(x - hw + 1, B - j, Math.max(1, hw * 2 - 1), 1, mix(gl, gls, 0.5));
     }
     for (let k = 0; k < 5; k++) r.fillRect(x - 2 + k, B - 62 - k, 2, 4, gls);
     beacon(r, x, B - 68, t, tod, 0.9);
   }
   {
-    // the Gherkin
-    const x = 76 + o1, gls = A('#5a8a70', 0.08), h = 40;
+    const x = 74 + o1, gls = A('#5a8a70', 0.06), h = 40;
     for (let j = 0; j <= h; j++) {
       const f = j / h;
       const hw = Math.max(1, Math.round(8 * Math.sin(Math.PI * (0.16 + 0.78 * f))));
-      r.fillRect(x - hw, B - j, hw * 2 + 1, 1, (j + Math.round(f * 4)) % 5 === 0 ? mix(gls, '#ffffff', 0.22) : gls);
+      r.fillRect(x - hw, B - j, hw * 2 + 1, 1, (j + Math.round(f * 4)) % 5 === 0 ? mix(gls, '#ffffff', 0.24) : gls);
       if (litc && j % 4 === 1) r.fillRect(x - hw, B - j, hw * 2 + 1, 1, mix(gl, gls, 0.55));
     }
     r.fillRect(x, B - h - 3, 1, 3, gls);
   }
   {
-    // Elizabeth Tower (Big Ben)
-    const x = 148 + o1, st = A('#c8b078', 0.1);
-    r.fillRect(x - 22, B - 16, 20, 16, st);
-    for (let i = 0; i < 4; i++) r.fillRect(x - 20 + i * 5, B - 13, 3, 10, litc ? gl : mix(st, '#000000', 0.3));
-    r.fillRect(x - 6, B - 40, 13, 40, st);
-    r.fillRect(x - 7, B - 42, 15, 2, mix(st, '#ffffff', 0.2));
-    // clock face
-    r.disc(x, B - 34, 4, litc ? mix(gl, '#ffffff', 0.5) : '#efe8d0');
-    r.px(x, B - 36, '#0b0b12'); r.px(x + 2, B - 34, '#0b0b12'); r.px(x, B - 34, '#0b0b12');
-    r.fillRect(x - 5, B - 46, 11, 4, st);
-    spire(r, x, B - 46, 11, 12, A('#4a6a58', 0.1));
-    r.px(x, B - 59, A(P.gold, 0.08));
+    // Elizabeth Tower (Big Ben) + Parliament
+    const x = 150 + o1, st = A('#c8b078', 0.08);
+    r.fillRect(x - 26, B - 17, 24, 17, st);
+    for (let i = 0; i < 5; i++) r.fillRect(x - 24 + i * 5, B - 14, 3, 11, litc ? gl : mix(st, '#000000', 0.3));
+    for (let i = 0; i < 6; i++) r.fillRect(x - 25 + i * 4, B - 20, 2, 3, st);
+    r.fillRect(x - 7, B - 42, 15, 42, st);
+    r.fillRect(x - 8, B - 44, 17, 2, mix(st, '#ffffff', 0.22));
+    r.disc(x, B - 36, 4, litc ? mix(gl, '#ffffff', 0.55) : '#efe8d0');
+    r.px(x, B - 38, '#0b0b12'); r.px(x + 2, B - 36, '#0b0b12'); r.px(x, B - 36, '#0b0b12');
+    r.fillRect(x - 6, B - 48, 13, 4, st);
+    spire(r, x, B - 48, 13, 13, A('#4a6a58', 0.08));
+    r.px(x, B - 62, A(P.gold, 0.06));
   }
-  wheel(r, 204 + o1, B - 24, 20, A('#8fa4b4', 0.06), A('#cfd8e0', 0.06), t, litc, mix(gl, P.cyan, 0.35));
+  wheel(r, 208 + o1, B - 26, 21, A('#8fa4b4', 0.04), A('#cfd8e0', 0.04), t, litc, mix(gl, P.cyan, 0.35));
 
   // ── near: Tower Bridge
   {
-    const dy = y - 6, st = A('#b0aa96', 0), blue = A('#2a6a8a', 0);
-    r.fillRect(-64 + o2, dy, 190, 3, mix(st, '#000000', 0.25));
-    for (const tx of [22, 104]) {
+    const dy = y - 7, st = A('#b4ae9a', 0), blue = A('#2a6a8a', 0);
+    r.fillRect(-64 + o2, dy, 372, 3, mix(st, '#000000', 0.28));
+    // suspended side spans (catenary)
+    for (let k = 0; k <= 30; k++) { const u = k / 30; r.px(-64 + o2 + k * 3, dy - 2 - Math.round((1 - u) * (1 - u) * 22), mix(st, '#000000', 0.15)); }
+    for (let k = 0; k <= 30; k++) { const u = k / 30; r.px(118 + o2 + k * 3, dy - 2 - Math.round(u * u * 22), mix(st, '#000000', 0.15)); }
+    for (const tx of [26, 114]) {
       const x = tx + o2;
-      r.fillRect(x - 7, dy - 34, 15, 34, st);
-      archRow(r, x - 7, dy, 15, 16, 1, st, mix(st, '#000000', 0.45));
-      if (litc) { r.fillRect(x - 4, dy - 30, 3, 4, gl); r.fillRect(x + 2, dy - 30, 3, 4, gl); }
-      r.fillRect(x - 8, dy - 38, 17, 4, mix(st, '#ffffff', 0.12));
-      spire(r, x, dy - 38, 15, 11, blue);
-      for (const dx2 of [-6, 6]) { r.fillRect(x + dx2 - 1, dy - 40, 3, 3, st); spire(r, x + dx2, dy - 40, 3, 4, blue); }
-      r.px(x, dy - 50, A(P.gold, 0.05));
+      r.fillRect(x - 8, dy - 36, 17, 36, st);
+      archRow(r, x - 8, dy, 17, 17, 1, st, mix(st, '#000000', 0.45));
+      if (litc) { r.fillRect(x - 5, dy - 32, 3, 4, gl); r.fillRect(x + 2, dy - 32, 3, 4, gl); }
+      r.fillRect(x - 9, dy - 40, 19, 4, mix(st, '#ffffff', 0.14));
+      spire(r, x, dy - 40, 17, 12, blue);
+      for (const dx2 of [-7, 7]) { r.fillRect(x + dx2 - 1, dy - 42, 3, 3, st); spire(r, x + dx2, dy - 42, 3, 4, blue); }
+      r.px(x, dy - 53, A(P.gold, 0.04));
     }
-    r.fillRect(22 + o2, dy - 32, 83, 3, blue); r.fillRect(22 + o2, dy - 26, 83, 2, blue);
-    for (let k = 0; k < 5; k++) line(r, 29 + o2 + k * 16, dy - 24, 29 + o2 + k * 16, dy, mix(st, '#000000', 0.3));
-    // suspension chains out to the banks
-    for (let k = 0; k <= 24; k++) { const u = k / 24; r.px(-60 + o2 + k * 3.4, dy - 2 - Math.round((1 - u) * 20), mix(st, '#000000', 0.2)); }
-    for (let k = 0; k <= 24; k++) { const u = k / 24; r.px(112 + o2 + k * 3.4, dy - 22 + Math.round(u * 20), mix(st, '#000000', 0.2)); }
+    r.fillRect(26 + o2, dy - 34, 89, 3, blue); r.fillRect(26 + o2, dy - 28, 89, 2, blue);
+    for (let k = 0; k < 6; k++) r.fillRect(35 + o2 + k * 14, dy - 26, 1, 26, mix(st, '#000000', 0.32));
   }
-  r.fillRect(0, y - 3, 240, 3, N);
-  sign(r, 'TUBE', 8 + o2, y - 34, P.red, 9, tod, t, 1);
-  sign(r, 'TEA', 222 + o2, y - 58, P.gold, 9, tod, t, 2, true);
-  sign(r, 'LONDON', 120 + o2, y - 72, P.cyan, 8, tod, t, 3);
+  r.fillRect(0, y - 4, 240, 4, N);
+  sign(r, 'TUBE', 5 + o2, y - 74, P.red, 10, tod, t, 1);
+  sign(r, 'TEA', 224 + o2, y - 74, P.gold, 10, tod, t, 2, true);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// ROME — Colosseum, St Peter's dome, Vittoriano, aqueduct, umbrella pines.
+// ROME — the Colosseum, St Peter's dome, the Vittoriano, umbrella pines.
 // ═════════════════════════════════════════════════════════════════════════════
 const rome: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -921,71 +929,71 @@ const rome: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 60, y - 62, 15);
+  skyFurniture(r, p, tod, px, y, t, 86, y - 60, 15);
   clouds(r, y - 52, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : '#ffc070', 0.5), 8, 4, 16);
 
-  // ── far: Alban hills + rooftops
-  for (const [cx, w, h] of [[20, 140, 26], [130, 150, 32], [250, 130, 24]] as const) mountain(r, cx + o0, y - 10, w, h, F);
-  houseRow(r, y - 10, o0, -64, 304, F, mix(F, '#000000', 0.2), gl, tod, 33, 8, 16);
-  const B = y - 10;
+  // ── far: the Alban hills and an aqueduct
+  for (const [cx, w, h] of [[20, 140, 26], [130, 150, 32], [250, 130, 24]] as const) mountain(r, cx + o0, y - 12, w, h, F);
+  {
+    const st = mix(A('#b08a5e', 0.35), F, 0.3);
+    r.fillRect(-64 + o0, y - 26, 120, 4, st);
+    archRow(r, -64 + o0, y - 12, 120, 14, 6, st, mix(st, '#000000', 0.4));
+  }
+  houseRow(r, y - 12, o0, 60, 304, F, mix(F, '#000000', 0.2), gl, tod, 33, 8, 16);
+  hazeBand(r, p, y, 20, 0.12, fog);
+  const B = y - 12;
 
-  // ── mid: St Peter's, Vittoriano, Colosseum
+  // ── mid: the Colosseum, the Vittoriano, St Peter's
   houseRow(r, B, o1, -64, 304, M, A('#b0562e', 0.22), gl, tod, 35, 10, 20);
   {
-    // St Peter's basilica
-    const x = 198 + o1, st = A('#e0d6bc', 0.12);
-    r.fillRect(x - 26, B - 15, 53, 15, st);
-    for (let i = -22; i <= 22; i += 5) r.fillRect(x + i, B - 12, 3, 9, litc ? gl : mix(st, '#000000', 0.28));
-    r.fillRect(x - 12, B - 23, 25, 8, st);
-    dome(r, x, B - 23, 13, 15, mix(st, '#8a9a8a', 0.35));
-    for (let k = -2; k <= 2; k++) line(r, x + k * 5, B - 24, x + k * 2, B - 36, mix(st, '#000000', 0.2));
-    r.fillRect(x - 3, B - 39, 7, 3, st); r.fillRect(x, B - 44, 1, 5, st); r.px(x, B - 45, A(P.gold, 0.08));
-    dome(r, x - 19, B - 15, 6, 5, mix(st, '#8a9a8a', 0.3)); dome(r, x + 19, B - 15, 6, 5, mix(st, '#8a9a8a', 0.3));
-  }
-  {
-    // Vittoriano — the white wedding cake
-    const x = 140 + o1, st = A('#f0ece0', 0.1);
-    r.fillRect(x - 24, B - 10, 49, 10, st);
-    r.fillRect(x - 19, B - 16, 39, 6, st);
-    for (let i = -17; i <= 17; i += 4) r.fillRect(x + i, B - 24, 3, 8, st);
-    r.fillRect(x - 20, B - 27, 41, 3, st);
-    r.fillRect(x - 22, B - 25, 45, 1, mix(st, '#000000', 0.15));
-    for (const dx of [-18, 18]) { r.fillRect(x + dx - 3, B - 31, 7, 4, st); r.fillRect(x + dx - 1, B - 34, 3, 3, A(P.gold, 0.08)); }
-    if (litc) r.fillRect(x - 24, B - 9, 49, 1, gl);
-  }
-  {
-    // the Colosseum
-    const x = 62 + o1, st = A('#d2a86e', 0.1);
+    const x = 52 + o1, st = A('#d2a86e', 0.08);
     archRow(r, x - 30, B - 20, 61, 12, 8, st, mix(st, '#000000', 0.5));
     archRow(r, x - 28, B - 10, 57, 10, 7, st, mix(st, '#000000', 0.45));
     archRow(r, x - 26, B, 53, 10, 7, st, mix(st, '#000000', 0.4));
     r.fillRect(x - 32, B - 32, 40, 12, st);
     archRow(r, x - 32, B - 20, 40, 12, 5, st, mix(st, '#000000', 0.5));
-    r.fillRect(x - 33, B - 34, 42, 2, mix(st, '#ffffff', 0.15));
+    r.fillRect(x - 33, B - 34, 42, 2, mix(st, '#ffffff', 0.16));
     if (litc) for (let i = 0; i < 7; i++) r.fillRect(x - 27 + i * 8, B - 6, 3, 4, mix(gl, P.orange, 0.4));
   }
-
-  // ── near: aqueduct + umbrella pines
   {
-    const st = A('#b08a5e', 0), dy = y - 4;
-    r.fillRect(-64 + o2, dy - 16, 150, 5, st);
-    archRow(r, -64 + o2, dy, 150, 16, 7, st, mix(st, '#000000', 0.45));
+    // the Vittoriano
+    const x = 138 + o1, st = A('#f0ece0', 0.08);
+    r.fillRect(x - 24, B - 10, 49, 10, st);
+    r.fillRect(x - 19, B - 16, 39, 6, st);
+    for (let i = -17; i <= 17; i += 4) r.fillRect(x + i, B - 24, 3, 8, st);
+    r.fillRect(x - 20, B - 27, 41, 3, st);
+    r.fillRect(x - 22, B - 25, 45, 1, mix(st, '#000000', 0.15));
+    for (const dx of [-18, 18]) { r.fillRect(x + dx - 3, B - 31, 7, 4, st); r.fillRect(x + dx - 1, B - 34, 3, 3, A(P.gold, 0.06)); }
+    if (litc) r.fillRect(x - 24, B - 9, 49, 1, gl);
   }
-  r.fillRect(0, y - 4, 240, 4, N);
-  for (let i = -1; i < 8; i++) {
-    const x = i * 34 + 20 + o2, h = 20 + (i % 3) * 5;
-    r.fillRect(x - 1, y - 3 - h, 3, h, A('#4a3420', 0.08));
-    r.disc(x, y - 6 - h, 10, A('#1e5a2c', 0.1));
-    r.fillRect(x - 10, y - 5 - h, 21, 3, A('#26682e', 0.1));
-    r.disc(x - 5, y - 8 - h, 5, A('#2a7434', 0.1)); r.disc(x + 5, y - 8 - h, 5, A('#2a7434', 0.1));
+  {
+    // St Peter's basilica
+    const x = 210 + o1, st = A('#e0d6bc', 0.1);
+    r.fillRect(x - 26, B - 15, 53, 15, st);
+    for (let i = -22; i <= 22; i += 5) r.fillRect(x + i, B - 12, 3, 9, litc ? gl : mix(st, '#000000', 0.28));
+    r.fillRect(x - 12, B - 23, 25, 8, st);
+    dome(r, x, B - 23, 13, 15, mix(st, '#8a9a8a', 0.35));
+    for (let k = -2; k <= 2; k++) line(r, x + k * 5, B - 24, x + k * 2, B - 36, mix(st, '#000000', 0.2));
+    r.fillRect(x - 3, B - 40, 7, 4, st); r.fillRect(x, B - 45, 1, 5, st); r.px(x, B - 46, A(P.gold, 0.06));
+    dome(r, x - 19, B - 15, 6, 5, mix(st, '#8a9a8a', 0.3)); dome(r, x + 19, B - 15, 6, 5, mix(st, '#8a9a8a', 0.3));
   }
-  sign(r, 'ROMA', 8 + o2, y - 44, P.red, 10, tod, t, 1);
-  sign(r, 'PIZZA', 176 + o2, y - 30, P.gold, 8, tod, t, 2);
-  sign(r, 'VESPA', 96 + o2, y - 66, P.cyan, 7, tod, t, 3);
+
+  // ── near: umbrella pines
+  r.fillRect(0, y - 12, 240, 12, N);
+  r.fillRect(0, y - 13, 240, 1, mix(N, '#ffffff', 0.14));
+  for (let i = -1; i < 6; i++) {
+    const x = i * 46 + 22 + o2, h = 18 + (i % 3) * 4;
+    r.fillRect(x - 1, y - 10 - h, 3, h, A('#4a3420', 0.06));
+    r.disc(x, y - 13 - h, 8, A('#1e5a2c', 0.08));
+    r.fillRect(x - 8, y - 12 - h, 17, 3, A('#26682e', 0.08));
+    r.disc(x - 4, y - 15 - h, 4, A('#2a7434', 0.08)); r.disc(x + 4, y - 15 - h, 4, A('#2a7434', 0.08));
+  }
+  sign(r, 'ROMA', 5 + o2, y - 74, P.red, 10, tod, t, 1);
+  sign(r, 'PIZZA', 182 + o2, y - 74, P.gold, 9, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// AMSTERDAM — stepped-gable canal houses with reflections, Westerkerk,
+// AMSTERDAM — stepped-gable canal houses mirrored in the water, the Westerkerk,
 // a windmill and a white drawbridge.
 // ═════════════════════════════════════════════════════════════════════════════
 /** Canal house row with gables, lit windows and a wobbling water reflection. */
@@ -1002,14 +1010,15 @@ function gableRow(r: Renderer, base: number, ox: number, x0: number, x1: number,
     if (style === 0) { for (let s = 0; s < 4; s++) r.fillRect(x + s, top - 2 - s * 2, Math.max(1, w - s * 2), 2, col); }
     else if (style === 1) { dome(r, x + (w >> 1), top, Math.max(2, (w >> 1) - 1), 4, col); r.fillRect(x + 2, top - 6, Math.max(1, w - 4), 2, col); }
     else spire(r, x + (w >> 1), top, w, 5, col);
+    r.fillRect(x, top - 1, w, 1, mix(col, '#ffffff', 0.22));
     for (let wy = base - h + 3; wy < base - 2; wy += 4) for (let wx = x + 2; wx < x + w - 2; wx += 3) {
       if (h01(wx * 5 + wy, seed) < (litc ? 0.6 : 0.3)) r.fillRect(wx, wy, 2, 2, litc ? glow : mix(col, '#000000', 0.42));
     }
     if (reflect > 0) {
       for (let j = 0; j < reflect; j++) {
-        const wob = Math.round(Math.sin((j + i) * 1.1) * 1.2);
-        r.fillRect(x + wob, base + j, w, 1, col, Math.max(0, 0.5 - j / (reflect * 1.9)));
-        if (litc && j % 3 === 1) r.fillRect(x + wob + 2, base + j, 2, 1, glow, Math.max(0, 0.45 - j / (reflect * 1.8)));
+        const wob = Math.round(Math.sin((j + i) * 1.1) * 1.3);
+        r.fillRect(x + wob, base + j, w, 1, col, Math.max(0, 0.55 - j / (reflect * 1.8)));
+        if (litc && j % 3 === 1) r.fillRect(x + wob + 2, base + j, 2, 1, glow, Math.max(0, 0.5 - j / (reflect * 1.7)));
       }
     }
     x += w + 1; i++;
@@ -1021,78 +1030,77 @@ const amsterdam: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 46, y - 66, 12);
+  skyFurniture(r, p, tod, px, y, t, 44, y - 62, 12);
   clouds(r, y - 56, px * 0.3 + t * 3, mix(p.haze, tod === 'day' ? '#ffffff' : '#ffc0a0', 0.45), 12, 6, 24);
 
   // ── far: polder, windmills
-  r.fillRect(0, y - 15, 240, 3, F);
-  skyrow(r, y - 14, o0, F, gl, tod, 41, 8, 14, 8, 16, 0.35);
-  for (const mx of [28, 168]) {
+  r.fillRect(0, y - 19, 240, 4, F);
+  skyrow(r, y - 18, o0, F, gl, tod, 41, 8, 14, 8, 16, 0.35);
+  for (const mx of [28, 200]) {
     const x = mx + o0;
-    for (let j = 0; j < 20; j++) { const hw = Math.round(3 + (j / 20) * 4); r.fillRect(x - hw, y - 14 - j, hw * 2 + 1, 1, F); }
-    r.fillRect(x - 4, y - 38, 9, 4, F);
+    for (let j = 0; j < 26; j++) { const hw = Math.round(3 + (j / 26) * 5); r.fillRect(x - hw, y - 18 - j, hw * 2 + 1, 1, F); }
+    r.fillRect(x - 5, y - 48, 11, 5, mix(F, '#000000', 0.2));
     const a = t * 0.5;
     for (let k = 0; k < 4; k++) {
       const ang = a + (k / 4) * Math.PI * 2;
-      line(r, x, y - 36, x + Math.cos(ang) * 13, y - 36 + Math.sin(ang) * 13, mix(F, '#ffffff', 0.2));
+      line(r, x, y - 46, x + Math.cos(ang) * 15, y - 46 + Math.sin(ang) * 15, mix(F, '#ffffff', 0.25));
+      line(r, x, y - 45, x + Math.cos(ang) * 14, y - 45 + Math.sin(ang) * 14, mix(F, '#000000', 0.15));
     }
   }
+  hazeBand(r, p, y, 20, 0.12, fog);
 
   // ── the canal
-  water(r, y - 2, 13, A('#1e4238', 0.2), litc ? gl : '#b8d8cc', t, px);
-  const B = y - 15;
+  water(r, y - 2, 18, A('#1e4238', 0.2), litc ? gl : '#b8d8cc', t, px);
+  const B = y - 18;
 
-  // ── mid: canal houses with reflections, Westerkerk
+  // ── mid: canal houses mirrored in the water, the Westerkerk
   {
-    const cols = [A('#6a3a2a', 0.08), A('#4a3a30', 0.08), A('#7a4a34', 0.08), A('#3a3a42', 0.08), A('#5a4636', 0.08)];
-    gableRow(r, B, o1, -64, 304, cols, gl, tod, 51, 16, 30, 12);
+    const cols = [A('#6a3a2a', 0.06), A('#4a3a30', 0.06), A('#7a4a34', 0.06), A('#3a3a42', 0.06), A('#5a4636', 0.06)];
+    gableRow(r, B, o1, -64, 304, cols, gl, tod, 51, 16, 30, 14);
   }
   {
-    // Westerkerk — tower with the blue crown
-    const x = 64 + o1, st = A('#8a7a68', 0.08), crown = A('#2a5a9a', 0.08);
+    const x = 68 + o1, st = A('#8a7a68', 0.06), crown = A('#2a5a9a', 0.06);
     r.fillRect(x - 16, B - 14, 33, 14, st);
-    r.fillRect(x - 6, B - 40, 13, 40, st);
-    r.fillRect(x - 7, B - 42, 15, 2, mix(st, '#ffffff', 0.2));
-    if (litc) { r.fillRect(x - 2, B - 34, 4, 5, gl); r.fillRect(x - 12, B - 10, 3, 5, gl); r.fillRect(x + 10, B - 10, 3, 5, gl); }
-    r.fillRect(x - 5, B - 47, 11, 5, st);
-    spire(r, x, B - 47, 11, 10, mix(st, '#000000', 0.2));
-    r.fillRect(x - 3, B - 60, 7, 4, crown);
-    r.fillRect(x - 1, B - 64, 3, 4, crown);
-    r.px(x, B - 65, A(P.gold, 0.06));
-    for (let j = 0; j < 12; j++) r.fillRect(x - 5, B + j, 11, 1, st, Math.max(0, 0.42 - j / 26));
+    r.fillRect(x - 7, B - 42, 15, 42, st);
+    r.fillRect(x - 8, B - 44, 17, 2, mix(st, '#ffffff', 0.22));
+    if (litc) { r.fillRect(x - 2, B - 36, 4, 5, gl); r.fillRect(x - 12, B - 10, 3, 5, gl); r.fillRect(x + 10, B - 10, 3, 5, gl); }
+    r.fillRect(x - 5, B - 49, 11, 5, st);
+    spire(r, x, B - 49, 11, 10, mix(st, '#000000', 0.2));
+    r.fillRect(x - 3, B - 62, 7, 4, crown);
+    r.fillRect(x - 1, B - 66, 3, 4, crown);
+    r.px(x, B - 67, A(P.gold, 0.05));
+    for (let j = 0; j < 14; j++) r.fillRect(x - 6, B + j, 13, 1, st, Math.max(0, 0.45 - j / 30));
   }
-  // ── near: white drawbridge
+
+  // ── near: the Magere Brug drawbridge
   {
-    const wht = A('#ece8dc', 0), dy = y - 5;
-    const open = 0.35 + 0.35 * Math.sin(t * 0.5);
-    r.fillRect(130 + o2, dy, 60, 3, wht);
-    r.fillRect(-64 + o2, dy, 120, 3, wht);
-    for (const [x0, dir] of [[56, 1], [130, -1]] as const) {
-      const bx = x0 + o2;
-      for (let k = 0; k < 22; k++) r.px(bx + dir * k, dy - Math.round(k * open), wht);
-      for (let k = 0; k < 22; k++) r.px(bx + dir * k, dy - 2 - Math.round(k * open), wht);
-    }
-    for (const px2 of [52, 134]) {
-      const x = px2 + o2;
+    const wht = A('#efebdf', 0), dy = y - 5;
+    const open = 0.30 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.5));
+    r.fillRect(-64 + o2, dy, 122, 3, wht);
+    r.fillRect(128 + o2, dy, 176, 3, wht);
+    for (let k = 0; k < 20; k++) { r.px(58 + o2 + k, dy - Math.round(k * open), wht); r.px(58 + o2 + k, dy - 2 - Math.round(k * open), wht); }
+    for (let k = 0; k < 20; k++) { r.px(128 + o2 - k, dy - Math.round(k * open), wht); r.px(128 + o2 - k, dy - 2 - Math.round(k * open), wht); }
+    for (const bx of [54, 132]) {
+      const x = bx + o2;
       r.fillRect(x - 1, dy - 26, 3, 26, wht);
-      r.fillRect(x - 6, dy - 26, 13, 3, wht);
-      line(r, x - 5, dy - 24, x - 5 + (px2 === 52 ? 22 : -22), dy - 4 - Math.round(22 * open), mix(wht, '#000000', 0.25));
+      r.fillRect(x - 6, dy - 27, 13, 3, wht);
+      line(r, x + (bx === 54 ? -5 : 5), dy - 25, x + (bx === 54 ? 22 : -22), dy - 3 - Math.round(20 * open), mix(wht, '#000000', 0.28));
+      if (litc) r.fillRect(x - 1, dy - 30, 3, 3, gl);
     }
-    if (litc) { r.fillRect(52 + o2, dy - 29, 2, 2, gl); r.fillRect(134 + o2, dy - 29, 2, 2, gl); }
+    for (let x = -60 + o2; x < 300 + o2; x += 20) if (x < 50 + o2 || x > 136 + o2) r.fillRect(x, dy + 3, 2, 5, mix(wht, '#000000', 0.4));
   }
-  r.fillRect(0, y - 3, 240, 3, N);
-  for (let i = -1; i < 10; i++) {
-    const x = i * 26 + 6 + o2;
-    r.fillRect(x - 1, y - 14, 3, 11, A('#3a2c1e', 0.08));
-    r.disc(x, y - 17, 6, A('#2a6a3c', 0.1)); r.disc(x + 3, y - 15, 4, A('#337a44', 0.1));
+  r.fillRect(0, y - 2, 240, 2, N);
+  for (const x0 of [-6, 10, 210, 228, 244]) {
+    const x = x0 + o2;
+    r.fillRect(x - 1, y - 13, 3, 11, A('#3a2c1e', 0.06));
+    r.disc(x, y - 16, 6, A('#2a6a3c', 0.08)); r.disc(x + 3, y - 14, 4, A('#337a44', 0.08));
   }
-  sign(r, 'GRACHT', 10 + o2, y - 44, P.cyan, 8, tod, t, 1);
-  sign(r, 'FIETS', 196 + o2, y - 34, P.gold, 8, tod, t, 2);
-  sign(r, 'AMSTERDAM', 82 + o2, y - 70, P.red, 6, tod, t, 3);
+  sign(r, 'GRACHT', 5 + o2, y - 74, P.cyan, 9, tod, t, 1);
+  sign(r, 'FIETS', 184 + o2, y - 74, P.gold, 9, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// BARCELONA — Sagrada Família, Torre Glòries, Montjuïc, Tibidabo, the sea.
+// BARCELONA — the Sagrada Família, Torre Glòries, Montjuïc, Tibidabo, the sea.
 // ═════════════════════════════════════════════════════════════════════════════
 const barcelona: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -1100,28 +1108,28 @@ const barcelona: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 200, y - 62, 14);
+  skyFurniture(r, p, tod, px, y, t, 204, y - 58, 14);
 
-  // ── far: Tibidabo + Collserola mast, Montjuïc with the castle
-  mountain(r, 56 + o0, y - 12, 150, 46, F);
+  // ── far: Tibidabo, the Collserola mast, Montjuïc with its castle
+  mountain(r, 52 + o0, y - 14, 150, 46, F);
   {
-    const x = 48 + o0, st = mix(A('#e0dcc8', 0.35), F, 0.3);
-    r.fillRect(x - 7, y - 52, 15, 10, st); spire(r, x, y - 52, 15, 8, st);
-    r.fillRect(x, y - 64, 1, 4, st);
-    const cx = 92 + o0;
-    for (let j = 0; j < 34; j++) { const hw = Math.max(1, Math.round(3 - (j / 34) * 2)); r.fillRect(cx - hw, y - 44 - j, hw * 2 + 1, 1, F); }
+    const x = 44 + o0, st = mix(A('#e0dcc8', 0.35), F, 0.3);
+    r.fillRect(x - 7, y - 54, 15, 10, st); spire(r, x, y - 54, 15, 8, st);
+    r.fillRect(x, y - 66, 1, 4, st);
+    const cx = 88 + o0;
+    for (let j = 0; j < 32; j++) { const hw = Math.max(1, Math.round(3 - (j / 32) * 2)); r.fillRect(cx - hw, y - 46 - j, hw * 2 + 1, 1, F); }
     r.fillRect(cx - 5, y - 62, 11, 6, F);
-    beacon(r, cx, y - 80, t, tod, 0.6);
+    beacon(r, cx, y - 79, t, tod, 0.6);
   }
-  mountain(r, 216 + o0, y - 12, 130, 34, F);
-  { const x = 216 + o0, st = mix(A('#d8cfae', 0.35), F, 0.3); r.fillRect(x - 12, y - 44, 25, 8, st); for (let i = -10; i <= 10; i += 5) r.fillRect(x + i, y - 47, 3, 3, st); }
+  mountain(r, 220 + o0, y - 14, 130, 34, F);
+  { const x = 220 + o0, st = mix(A('#d8cfae', 0.35), F, 0.3); r.fillRect(x - 12, y - 46, 25, 8, st); for (let i = -10; i <= 10; i += 5) r.fillRect(x + i, y - 49, 3, 3, st); }
+  hazeBand(r, p, y, 20, 0.12, fog);
 
-  const B = y - 11;
-  // ── mid: Eixample blocks, Sagrada Família, Torre Glòries
+  const B = y - 13;
+  // ── mid: Eixample blocks, the Sagrada Família, Torre Glòries
   houseRow(r, B, o1, -64, 304, M, A('#9a5a36', 0.22), gl, tod, 61, 14, 24);
   {
-    // Sagrada Família — tapered spires with mosaic tips
-    const x = 112 + o1, st = A('#d8c49a', 0.08);
+    const x = 112 + o1, st = A('#d8c49a', 0.06);
     r.fillRect(x - 24, B - 20, 49, 20, st);
     archRow(r, x - 24, B, 49, 20, 3, st, mix(st, '#000000', 0.4));
     const tips = [P.red, P.gold, P.green, P.cyan, P.orange, P.purple];
@@ -1134,17 +1142,15 @@ const barcelona: SkylineFn = (r, p, tod, px, y, t, fog) => {
         r.fillRect(sx2 - hw, B - 18 - j, hw * 2 + 1, 1, j % 6 === 0 ? mix(st, '#000000', 0.2) : st);
         if (litc && j % 7 === 3) r.fillRect(sx2 - hw, B - 18 - j, hw * 2 + 1, 1, mix(gl, st, 0.45));
       }
-      r.fillRect(sx2 - 1, B - 20 - hh, 3, 3, A(tips[k % tips.length], 0.05));
-      r.px(sx2, B - 23 - hh, A(P.gold, 0.05));
+      r.fillRect(sx2 - 2, B - 21 - hh, 5, 4, A(tips[k % tips.length], 0.03));
+      r.px(sx2, B - 25 - hh, A(P.gold, 0.03));
     });
-    // construction crane
-    r.fillRect(x + 28, B - 52, 2, 52, A('#e0a020', 0.1));
-    r.fillRect(x + 14, B - 54, 30, 2, A('#e0a020', 0.1));
-    beacon(r, x + 29, B - 56, t, tod, 1.2);
+    r.fillRect(x + 30, B - 54, 2, 54, A('#e0a020', 0.08));
+    r.fillRect(x + 18, B - 56, 26, 2, A('#e0a020', 0.08));
+    beacon(r, x + 31, B - 58, t, tod, 1.2);
   }
   {
-    // Torre Glòries — glowing bullet
-    const x = 196 + o1, h = 48, col = A('#3a6ab0', 0.06);
+    const x = 194 + o1, h = 48, col = A('#3a6ab0', 0.04);
     for (let j = 0; j <= h; j++) {
       const f = j / h;
       const hw = Math.max(1, Math.round(7 * Math.sin(Math.PI * (0.2 + 0.72 * f))));
@@ -1154,18 +1160,18 @@ const barcelona: SkylineFn = (r, p, tod, px, y, t, fog) => {
     beacon(r, x, B - h - 2, t, tod, 2.1);
   }
 
-  // ── near: Mediterranean + palms + beach
-  water(r, y - 3, 7, A('#1a6a9a', 0.12), litc ? gl : '#9fe8f0', t, px);
-  r.fillRect(0, y - 3, 240, 3, tod === 'night' ? mix(N, '#d8c090', 0.2) : A('#e0c890', 0.05));
-  for (let i = -1; i < 8; i++) palm(r, i * 32 + 12 + o2, y - 3, 18 + (i % 3) * 5, A('#1e5a34', 0.08));
-  sign(r, 'TAPAS', 8 + o2, y - 40, P.red, 9, tod, t, 1);
-  sign(r, 'GAUDÍ', 214 + o2, y - 60, P.gold, 9, tod, t, 2, true);
-  sign(r, 'PLAYA', 128 + o2, y - 28, P.cyan, 8, tod, t, 3);
+  // ── near: the Mediterranean, the beach, palms
+  water(r, y - 6, 9, A('#1a6a9a', 0.1), litc ? gl : '#9fe8f0', t, px);
+  r.fillRect(0, y - 6, 240, 6, tod === 'night' ? mix(N, '#d8c090', 0.22) : A('#e6cf96', 0.03));
+  r.fillRect(0, y - 7, 240, 1, tod === 'night' ? mix(N, '#e8d8a8', 0.3) : '#f2e0b0');
+  for (let i = -1; i < 8; i++) palm(r, i * 32 + 12 + o2, y - 4, 18 + (i % 3) * 5, A('#1e5a34', 0.06));
+  sign(r, 'TAPAS', 5 + o2, y - 74, P.red, 9, tod, t, 1);
+  sign(r, 'GAUDÍ', 182 + o2, y - 74, P.gold, 9, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
 // MOSCOW — St Basil's onion domes, Kremlin towers with red stars, a Stalinist
-// Seven Sister, the Ostankino tower and snow.
+// Seven Sister, the Ostankino tower, snow.
 // ═════════════════════════════════════════════════════════════════════════════
 const moscow: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -1173,84 +1179,83 @@ const moscow: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const litc = isDark(tod), gl = p.glow;
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
-  skyFurniture(r, p, tod, px, y, t, 210, y - 70, 11);
+  skyFurniture(r, p, tod, px, y, t, 212, y - 64, 11);
 
-  // ── far: Ostankino tower + blocks
+  // ── far: the Ostankino tower + blocks
   skyrow(r, y - 12, o0, F, gl, tod, 71, 9, 15, 12, 24, 0.4);
   {
-    const x = 42 + o0;
+    const x = 40 + o0;
     for (let j = 0; j < 56; j++) {
       const f = j / 56;
       const hw = Math.max(1, Math.round(5 * Math.pow(1 - f, 1.6) + 1));
       r.fillRect(x - hw, y - 12 - j, hw * 2 + 1, 1, j % 7 === 0 ? mix(F, '#ffffff', 0.14) : F);
     }
     r.fillRect(x - 5, y - 48, 11, 5, F);
-    r.fillRect(x - 1, y - 74, 3, 6, F); r.fillRect(x, y - 82, 1, 8, F);
-    beacon(r, x, y - 83, t, tod, 0.7); beacon(r, x, y - 49, t, tod, 2.4);
+    r.fillRect(x - 1, y - 74, 3, 6, F); r.fillRect(x, y - 80, 1, 6, F);
+    beacon(r, x, y - 81, t, tod, 0.7); beacon(r, x, y - 49, t, tod, 2.4);
   }
+  hazeBand(r, p, y, 18, 0.1, fog);
 
-  const B = y - 8;
-  // ── mid: Kremlin wall + towers, St Basil's, a Seven Sister
+  const B = y - 9;
+  // ── mid: the Kremlin wall, St Basil's, a Seven Sister
   skyrow(r, B, o1, M, gl, tod, 73, 10, 16, 14, 26, 0.45);
   {
-    // Kremlin wall with swallow-tail merlons and star towers
-    const wx = -30 + o1, st = A('#9a3a32', 0.1);
-    r.fillRect(wx, B - 13, 140, 13, st);
-    for (let x = wx; x < wx + 140; x += 6) { r.fillRect(x, B - 16, 4, 3, st); r.px(x + 1, B - 17, st); r.px(x + 3, B - 17, st); }
-    for (const tx of [-14, 36, 96] as const) {
-      const x = wx + tx + 30;
-      r.fillRect(x - 6, B - 30, 13, 30, st);
-      r.fillRect(x - 7, B - 33, 15, 3, mix(st, '#ffffff', 0.12));
-      if (litc) r.fillRect(x - 2, B - 26, 4, 4, gl);
-      spire(r, x, B - 33, 13, 16, A('#5a6a58', 0.1));
-      r.fillRect(x - 1, B - 51, 3, 3, litc ? P.red : A(P.red, 0.05));
-      if (litc) r.disc(x, B - 50, 3, P.red, 0.3);
+    const wx = -34 + o1, st = A('#9a3a32', 0.08);
+    r.fillRect(wx, B - 14, 132, 14, st);
+    for (let x = wx; x < wx + 132; x += 6) { r.fillRect(x, B - 17, 4, 3, st); r.px(x + 1, B - 18, st); r.px(x + 3, B - 18, st); }
+    for (const tx of [16, 66, 118]) {
+      const x = wx + tx;
+      r.fillRect(x - 7, B - 32, 15, 32, st);
+      r.fillRect(x - 8, B - 35, 17, 3, mix(st, '#ffffff', 0.14));
+      if (litc) r.fillRect(x - 2, B - 28, 4, 4, gl);
+      spire(r, x, B - 35, 15, 17, A('#5a6a58', 0.08));
+      r.fillRect(x - 1, B - 54, 3, 3, litc ? P.red : A(P.red, 0.03));
+      if (litc) r.disc(x, B - 53, 3, P.red, 0.3);
     }
   }
   {
-    // St Basil's Cathedral — a bouquet of coloured onion domes
-    const x = 146 + o1, body = A('#c8b48a', 0.08);
-    r.fillRect(x - 22, B - 18, 45, 18, body);
+    // St Basil's Cathedral
+    const x = 152 + o1, body = A('#c8b48a', 0.06);
+    r.fillRect(x - 22, B - 19, 45, 19, body);
     const dm: [number, number, number, string, string][] = [
-      [-18, 22, 5, '#2a7ab0', '#9fd8f0'], [-10, 28, 6, '#20a058', '#8ae0a8'], [0, 38, 8, '#d04a30', '#ffb070'],
-      [10, 28, 6, '#8040b0', '#d0a0f0'], [18, 22, 5, '#e0a020', '#ffe080'],
+      [-18, 24, 5, '#2a7ab0', '#9fd8f0'], [-10, 30, 6, '#20a058', '#8ae0a8'], [0, 40, 8, '#d04a30', '#ffb070'],
+      [10, 30, 6, '#8040b0', '#d0a0f0'], [18, 24, 5, '#e0a020', '#ffe080'],
     ];
     for (const [dx, hh, rx, c1, c2] of dm) {
       const cxx = x + dx;
-      r.fillRect(cxx - rx + 1, B - hh, rx * 2 - 1, hh - 16, body);
-      onion(r, cxx, B - hh, rx, Math.round(rx * 1.7), A(c1, 0.05), A(c2, 0.05));
+      r.fillRect(cxx - rx + 1, B - hh, rx * 2 - 1, hh - 17, body);
+      onion(r, cxx, B - hh, rx, Math.round(rx * 1.7), A(c1, 0.03), A(c2, 0.03));
     }
-    if (litc) for (let i = -18; i <= 18; i += 6) r.fillRect(x + i, B - 14, 2, 4, gl);
-    r.fillRect(x - 24, B - 20, 49, 2, mix(body, '#ffffff', 0.18));
+    if (litc) for (let i = -18; i <= 18; i += 6) r.fillRect(x + i, B - 15, 2, 4, gl);
+    r.fillRect(x - 24, B - 21, 49, 2, mix(body, '#ffffff', 0.2));
   }
   {
-    // Seven Sisters skyscraper
-    const x = 218 + o1, st = A('#8a8a94', 0.08);
-    block(r, x - 15, B, 31, 26, st, gl, tod, 77, 0.55);
-    block(r, x - 10, B - 26, 21, 18, st, gl, tod, 78, 0.55);
-    block(r, x - 6, B - 44, 13, 12, st, gl, tod, 79, 0.55);
-    spire(r, x, B - 56, 11, 10, st);
-    r.fillRect(x, B - 72, 1, 6, st);
-    r.fillRect(x - 1, B - 74, 3, 3, litc ? P.red : A(P.red, 0.05));
-    if (litc) r.disc(x, B - 73, 3, P.red, 0.3);
+    const x = 220 + o1, st = A('#8a8a94', 0.06);
+    block(r, x - 16, B, 33, 28, st, gl, tod, 77, 0.55);
+    block(r, x - 11, B - 28, 23, 18, st, gl, tod, 78, 0.55);
+    block(r, x - 6, B - 46, 13, 12, st, gl, tod, 79, 0.55);
+    spire(r, x, B - 58, 11, 10, st);
+    r.fillRect(x, B - 74, 1, 6, st);
+    r.fillRect(x - 1, B - 76, 3, 3, litc ? P.red : A(P.red, 0.03));
+    if (litc) r.disc(x, B - 75, 3, P.red, 0.3);
   }
 
-  // ── near: frozen river bank, snow, birches
-  r.fillRect(0, y - 6, 240, 6, tod === 'night' ? '#9aa4bc' : A('#e8eef8', 0.05));
-  r.fillRect(0, y - 7, 240, 1, tod === 'night' ? '#b0bad0' : '#f4f8ff');
-  for (let i = -1; i < 9; i++) {
-    const x = i * 30 + 10 + o2, h = 15 + (i % 3) * 5;
-    spire(r, x, y - 6, 11, h, A('#1a4a34', 0.08));
-    r.fillRect(x - 5, y - 6 - Math.round(h * 0.45), 11, 1, tod === 'night' ? '#c8d2e4' : '#f4f8ff');
-    r.fillRect(x - 3, y - 6 - Math.round(h * 0.72), 7, 1, tod === 'night' ? '#c8d2e4' : '#f4f8ff');
+  // ── near: the frozen bank, snowy firs, snowfall
+  r.fillRect(0, y - 9, 240, 9, tod === 'night' ? '#9aa4bc' : A('#e8eef8', 0.03));
+  r.fillRect(0, y - 10, 240, 1, tod === 'night' ? '#b4bed4' : '#f6faff');
+  for (let i = -1; i < 7; i++) {
+    const x = i * 38 + 14 + o2, h = 16 + (i % 3) * 5;
+    spire(r, x, y - 7, 13, h, A('#1a4a34', 0.06));
+    r.fillRect(x - 5, y - 7 - Math.round(h * 0.45), 11, 1, tod === 'night' ? '#c8d2e4' : '#f4f8ff');
+    r.fillRect(x - 3, y - 7 - Math.round(h * 0.72), 7, 1, tod === 'night' ? '#c8d2e4' : '#f4f8ff');
   }
   snowfall(r, y, t, 54, tod === 'night' ? '#dfe6f4' : '#ffffff');
-  sign(r, 'КРЕМЛЬ', 8 + o2, y - 44, P.red, 8, tod, t, 1);
-  sign(r, 'МОСКВА', 176 + o2, y - 68, P.cyan, 8, tod, t, 2);
+  sign(r, 'КРЕМЛЬ', 5 + o2, y - 74, P.red, 9, tod, t, 1);
+  sign(r, 'МОСКВА', 168 + o2, y - 74, P.cyan, 9, tod, t, 2);
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// REYKJAVÍK — Hallgrímskirkja, Harpa, corrugated houses, Esja, aurora.
+// REYKJAVÍK — Hallgrímskirkja, Harpa, corrugated houses, Esja, aurora curtains.
 // ═════════════════════════════════════════════════════════════════════════════
 const reykjavik: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const F = far(p, fog), M = mid(p, fog), N = near(p, fog);
@@ -1259,78 +1264,80 @@ const reykjavik: SkylineFn = (r, p, tod, px, y, t, fog) => {
   const A = (c: string, d = 0): string => ac(c, tod, p, fog, d);
   stars(r, tod, y, t);
   aurora(r, y, t, tod);
-  skyFurniture(r, p, tod, px, y, t, 38, y - 58, 11);
+  skyFurniture(r, p, tod, px, y, t, 206, y - 58, 11);
 
   // ── far: Esja, flat-topped and snow-streaked
   const snow = isNight(tod) ? '#b4c0d4' : tod === 'dusk' ? '#ffd8d0' : '#f4f4f0';
   {
-    const sx = -40 + o0;
-    r.fillRect(sx, y - 36, 150, 24, F);
-    for (let j = 0; j < 14; j++) { r.fillRect(sx - j * 2, y - 12 + j, 6, 1, F); r.fillRect(sx + 146 + j * 2, y - 12 + j, 6, 1, F); }
-    for (let k = 0; k < 16; k++) r.fillRect(sx + 6 + k * 9, y - 36, 4, 2 + (k % 3) * 3, mix(snow, p.haze, 0.3 + fog * 0.3));
-    r.fillRect(sx, y - 38, 150, 2, mix(snow, p.haze, 0.25));
+    const sx = -44 + o0;
+    for (let j = 0; j < 26; j++) {
+      const wob = Math.round(Math.sin(j * 0.9) * 2);
+      r.fillRect(sx - j, y - 40 + j + wob, 160 + j * 2, 1, F);
+    }
+    for (let k = 0; k < 18; k++) r.fillRect(sx + 8 + k * 9, y - 40 + Math.round(Math.sin(k) * 2), 4, 3 + (k % 3) * 4, mix(snow, p.haze, 0.28 + fog * 0.3));
+    for (let k = 0; k < 20; k++) r.fillRect(sx + 4 + k * 8, y - 41 + Math.round(Math.sin(k * 1.7) * 2), 6, 2, mix(snow, p.haze, 0.2));
   }
-  mountain(r, 190 + o0, y - 12, 130, 40, F, mix(snow, p.haze, 0.3), 0.3);
-  mountain(r, 264 + o0, y - 12, 100, 30, F, mix(snow, p.haze, 0.3), 0.28);
+  mountain(r, 198 + o0, y - 14, 120, 38, F, mix(snow, p.haze, 0.3), 0.3);
+  mountain(r, 268 + o0, y - 14, 100, 28, F, mix(snow, p.haze, 0.3), 0.28);
+  hazeBand(r, p, y, 18, 0.12, fog);
 
   // ── the North Atlantic
-  water(r, y - 3, 10, A('#12384a', 0.2), litc ? mix(gl, P.cyan, 0.4) : '#b0dce8', t, px);
-  const B = y - 12;
+  water(r, y - 4, 12, A('#12384a', 0.2), litc ? mix(gl, P.cyan, 0.4) : '#b0dce8', t, px);
+  const B = y - 15;
 
-  // ── mid: Hallgrímskirkja + Harpa + town
+  // ── mid: Hallgrímskirkja, Harpa, corrugated houses
   {
-    // Hallgrímskirkja — stepped basalt columns sweeping up to the tower
-    const x = 134 + o1, st = A('#e2ded2', 0.08);
+    const x = 138 + o1, st = A('#e2ded2', 0.06);
     const steps: [number, number][] = [[20, 10], [15, 18], [11, 26], [7, 34]];
     for (const [dx, hh] of steps) { r.fillRect(x - dx - 4, B - hh, 5, hh, st); r.fillRect(x + dx, B - hh, 5, hh, st); }
-    r.fillRect(x - 6, B - 52, 13, 52, st);
-    r.fillRect(x - 7, B - 54, 15, 2, mix(st, '#ffffff', 0.2));
-    for (let j = 0; j < 46; j++) if (j % 5 === 0) r.fillRect(x - 6, B - 8 - j, 13, 1, mix(st, '#000000', 0.14));
-    if (litc) { r.fillRect(x - 2, B - 46, 4, 5, gl); r.fillRect(x - 2, B - 10, 4, 6, gl); }
-    r.fillRect(x - 4, B - 57, 9, 3, st);
-    spire(r, x, B - 57, 9, 11, A('#8a9098', 0.08));
-    r.px(x, B - 70, A(P.gold, 0.05));
-    beacon(r, x, B - 69, t, tod, 1.9);
+    r.fillRect(x - 7, B - 54, 15, 54, st);
+    r.fillRect(x - 8, B - 56, 17, 2, mix(st, '#ffffff', 0.22));
+    for (let j = 0; j < 48; j++) if (j % 5 === 0) r.fillRect(x - 7, B - 8 - j, 15, 1, mix(st, '#000000', 0.14));
+    if (litc) { r.fillRect(x - 2, B - 48, 4, 5, gl); r.fillRect(x - 2, B - 10, 4, 6, gl); }
+    r.fillRect(x - 4, B - 59, 9, 3, st);
+    spire(r, x, B - 59, 9, 11, A('#8a9098', 0.06));
+    r.px(x, B - 72, A(P.gold, 0.03));
+    beacon(r, x, B - 71, t, tod, 1.9);
   }
   {
-    // Harpa — glass honeycomb
-    const x = 54 + o1, gls = A('#2a5a72', 0.08);
-    r.fillRect(x - 20, B - 18, 41, 18, gls);
+    const x = 52 + o1, gls = A('#2a5a72', 0.06);
+    r.fillRect(x - 20, B - 20, 41, 20, gls);
     for (let j = 0; j < 5; j++) for (let i = 0; i < 10; i++) {
       const on = litc && h01(i * 5 + j, Math.floor(t * 1.2)) < 0.4;
-      r.fillRect(x - 19 + i * 4, B - 17 + j * 4, 3, 3, on ? mix(gl, P.cyan, 0.45) : mix(gls, '#ffffff', 0.12));
+      r.fillRect(x - 19 + i * 4, B - 19 + j * 4, 3, 3, on ? mix(gl, P.cyan, 0.45) : mix(gls, '#ffffff', 0.14));
     }
-    r.fillRect(x - 21, B - 20, 43, 2, mix(gls, '#ffffff', 0.2));
+    r.fillRect(x - 21, B - 22, 43, 2, mix(gls, '#ffffff', 0.22));
   }
-  // corrugated houses with coloured roofs
   {
     const rooves = [P.red, '#2a6ab0', P.gold, '#20a058', '#d04a30', '#8040b0'];
     let x = -64 + o1, i = 0;
     while (x < 304 + o1) {
-      const w = 11 + Math.round(h01(i, 81) * 6), h = 9 + Math.round(h01(i + 5, 81) * 6);
-      const wall = i % 3 === 0 ? A('#e8e4d8', 0.1) : A('#c8ccd0', 0.1);
+      const w = 11 + Math.round(h01(i, 81) * 6), h = 9 + Math.round(h01(i + 5, 81) * 10);
+      const wall = i % 3 === 0 ? A('#e8e4d8', 0.08) : A('#c8ccd0', 0.08);
       r.fillRect(x, B - h, w, h, wall);
-      for (let k = 0; k < w; k += 2) r.fillRect(x + k, B - h, 1, h, mix(wall, '#000000', 0.1));
-      const rc = A(rooves[i % rooves.length], 0.05);
+      for (let k = 0; k < w; k += 2) r.fillRect(x + k, B - h, 1, h, mix(wall, '#000000', 0.12));
+      const rc = A(rooves[i % rooves.length], 0.03);
       for (let j = 0; j < 4; j++) { const ins = Math.round(((3 - j) * (w / 2 - 1)) / 4); r.fillRect(x + ins, B - h - 4 + j, Math.max(1, w - ins * 2), 1, rc); }
       if (litc) r.fillRect(x + 2, B - h + 3, 3, 3, gl);
       x += w + 1; i++;
     }
   }
-  // ── near: harbour
-  r.fillRect(0, y - 3, 240, 3, N);
+
+  // ── near: the harbour
+  r.fillRect(0, y - 4, 240, 4, N);
+  r.fillRect(0, y - 5, 240, 1, mix(N, '#ffffff', 0.2));
   for (let i = 0; i < 3; i++) {
-    const bx = Math.round(((t * 5 + i * 90) % 300) - 30) + o2;
-    boat(r, bx, y - 3, A(i % 2 ? '#d04a30' : '#e8e6de', 0), A('#2a5a72', 0), litc, gl, false);
+    const bx = Math.round(((t * 5 + i * 90) % 320) - 40) + o2;
+    boat(r, bx, y - 5, A(i % 2 ? '#d04a30' : '#e8e6de', 0), A('#2a5a72', 0), litc, gl, false);
   }
-  for (let i = -1; i < 8; i++) {
-    const x = i * 34 + 16 + o2;
-    r.disc(x, y - 5, 6, A('#3a3a40', 0.06)); r.disc(x + 5, y - 4, 4, A('#4a4a50', 0.06));
-    r.fillRect(x - 6, y - 7, 13, 1, isNight(tod) ? '#b8c2d4' : '#f0f4fa');
+  for (let x0 = -10; x0 < 250; x0 += 22) {
+    const x = x0 + o2;
+    r.fillRect(x, y - 8, 3, 4, mix(N, '#000000', 0.3));
+    r.fillRect(x - 1, y - 9, 5, 1, mix(N, '#ffffff', 0.15));
   }
-  snowfall(r, y, t, 26, isNight(tod) ? '#cfd8e8' : '#ffffff');
-  sign(r, 'AURORA', 10 + o2, y - 44, P.cyan, 8, tod, t, 1);
-  sign(r, 'ÍSLAND', 176 + o2, y - 32, P.gold, 8, tod, t, 2);
+  snowfall(r, y, t, 24, isNight(tod) ? '#cfd8e8' : '#ffffff');
+  sign(r, 'AURORA', 5 + o2, y - 74, P.cyan, 9, tod, t, 1);
+  sign(r, 'ÍSLAND', 180 + o2, y - 74, P.gold, 9, tod, t, 2);
 };
 
 export const SKYLINES_EUROPE: Record<string, SkylineFn> = {

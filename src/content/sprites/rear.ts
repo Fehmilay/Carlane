@@ -60,10 +60,10 @@ function extraMap(def: VehicleDef): CharMap {
   const lamp = p.lamp || '#e0202a';
   const body = p.body || '#909098';
   return {
-    z: mix(glass, '#ffffff', 0.55),
-    Z: mix(glass, '#0b0b12', 0.66),
-    j: mix(lamp, '#ffffff', 0.55),
-    J: mix(lamp, '#0b0b12', 0.5),
+    z: mix(glass, '#ffffff', 0.5),
+    Z: mix(glass, '#0b0b12', 0.84),
+    j: mix(lamp, '#ffffff', 0.5),
+    J: mix(lamp, '#0b0b12', 0.55),
     N: mix(p.shade || body, '#0b0b12', 0.45),
     h: mix(p.light || body, '#ffffff', 0.4),
   };
@@ -72,7 +72,7 @@ function extraMap(def: VehicleDef): CharMap {
 const inkOn = (hex: string): string => (lum(hex) > 0.45 ? 'K' : 'w');
 
 // ── grid helpers ─────────────────────────────────────────────────────────────
-function over(g: Grid, x: number, y: number, c: string, on = 'Bbh H'): void {
+function over(g: Grid, x: number, y: number, c: string, on = 'BbhH'): void {
   if (on.includes(g.get(x, y))) g.px(x, y, c);
 }
 function hlineOver(g: Grid, x0: number, x1: number, y: number, c: string, on = 'BbH'): void {
@@ -90,13 +90,17 @@ function halfAt(prof: Pt[], y: number): number {
 }
 
 // ── shared pieces ────────────────────────────────────────────────────────────
-/** Round taillight: black bezel, dark ring, glowing inner ring, lamp core. */
+/** Round taillight: black bezel, glowing ring, darker recessed centre (like the reference GT-R). */
 function roundLamp(g: Grid, cx: number, cy: number, r: number): void {
   g.circle(cx, cy, r, 'k');
-  g.circle(cx, cy, r - 1, 'J');
-  g.circle(cx, cy, Math.max(1, r - 2), 'j');
-  if (r >= 4) g.circle(cx, cy, Math.max(0, r - 4), 'L');
-  if (r >= 3) g.px(cx - (r - 2), cy - (r - 2), 'w');
+  if (r <= 2) { g.circle(cx, cy, r - 1, 'j'); return; }
+  g.circle(cx, cy, r - 1, 'j');
+  g.circle(cx, cy, r - 2, 'L');
+  if (r >= 4) {
+    g.circle(cx, cy, r - 3, 'J');
+    g.px(cx, cy, 'L');
+  }
+  g.px(cx - r + 1, cy - r + 2, 'w');
 }
 /** Rectangular lamp cluster: red main + amber + white reverse segment. */
 function boxLamp(g: Grid, x: number, y: number, w: number, h: number, flip: boolean): void {
@@ -167,7 +171,7 @@ function carSpec(def: VehicleDef): Spec {
       if (x === 'classic') {
         s = {
           w: 88, h: 66, roofTop: 6,
-          prof: [[6, 22], [7, 24], [8, 25], [12, 26], [13, 27], [22, 31], [30, 35], [34, 38], [40, 41], [48, 42], [54, 41], [58, 39], [61, 36]],
+          prof: [[6, 22], [7, 24], [8, 25], [12, 26], [13, 27], [22, 31], [30, 35], [34, 38], [40, 41], [48, 42], [53, 41], [57, 39], [61, 33]],
           glassY0: 13, glassY1: 27, glassHW: [20, 25], belt: 28,
           lampCY: 39, lampOuter: 36, plateCY: 52, plateW: 24, plateH: 8,
           splitY: 47, bot: 61, tyreTop: 46, tyreOuter: 42, tyreW: 11, diffHW: 18,
@@ -176,7 +180,7 @@ function carSpec(def: VehicleDef): Spec {
         const wide = x === 'wide';
         s = {
           w: 96, h: 70, roofTop: 6,
-          prof: [[6, 25], [7, 27], [8, 28], [11, 29], [12, 30], [20, 35], [28, 40], [31, 43], [36, wide ? 46 : 45], [42, wide ? 47 : 46], [50, wide ? 47 : 46], [53, 46], [56, 44], [60, 42], [65, 39]],
+          prof: [[6, 25], [7, 27], [8, 28], [11, 29], [12, 30], [20, 35], [28, 40], [31, 43], [36, wide ? 46 : 45], [42, wide ? 47 : 46], [50, wide ? 47 : 46], [53, 45], [57, 43], [61, 41], [65, 35]],
           glassY0: 12, glassY1: 28, glassHW: [24, 28], belt: 29,
           lampCY: 41, lampOuter: 37, plateCY: 51, plateW: 24, plateH: 8,
           splitY: 56, bot: 65, tyreTop: 50, tyreOuter: wide ? 46 : 45, tyreW: 12, diffHW: 24,
@@ -188,7 +192,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'taxi':
       s = {
         w: 94, h: 68, roofTop: 5,
-        prof: [[5, 26], [6, 28], [7, 29], [12, 30], [13, 31], [22, 35], [29, 39], [33, 42], [38, 45], [44, 46], [52, 46], [55, 45], [58, 43], [63, 40]],
+        prof: [[5, 26], [6, 28], [7, 29], [12, 30], [13, 31], [22, 35], [29, 39], [33, 42], [38, 45], [44, 46], [52, 46], [55, 45], [58, 43], [63, 35]],
         glassY0: 13, glassY1: 28, glassHW: [25, 29], belt: 29,
         lampCY: 38, lampOuter: 40, plateCY: 49, plateW: 24, plateH: 8,
         splitY: 54, bot: 63, tyreTop: 48, tyreOuter: 45, tyreW: 12, diffHW: 22,
@@ -197,7 +201,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'hatch':
       s = {
         w: 88, h: 64, roofTop: 3,
-        prof: [[3, 24], [4, 26], [5, 27], [10, 28], [11, 29], [20, 33], [28, 37], [32, 40], [38, 42], [44, 43], [50, 43], [53, 42], [56, 40], [59, 37]],
+        prof: [[3, 24], [4, 26], [5, 27], [10, 28], [11, 29], [20, 33], [28, 37], [32, 40], [38, 42], [44, 43], [50, 43], [53, 42], [56, 40], [59, 32]],
         glassY0: 11, glassY1: 29, glassHW: [23, 29], belt: 30,
         lampCY: 38, lampOuter: 38, plateCY: 48, plateW: 22, plateH: 8,
         splitY: 52, bot: 59, tyreTop: 46, tyreOuter: 42, tyreW: 11, diffHW: 18,
@@ -206,7 +210,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'kei':
       s = {
         w: 64, h: 52, roofTop: 2,
-        prof: [[2, 17], [3, 19], [4, 20], [8, 21], [9, 22], [16, 25], [22, 28], [26, 30], [34, 31], [40, 30], [44, 29], [47, 27]],
+        prof: [[2, 17], [3, 19], [4, 20], [8, 21], [9, 22], [16, 25], [22, 28], [26, 30], [34, 31], [40, 30], [44, 29], [47, 23]],
         glassY0: 9, glassY1: 21, glassHW: [16, 20], belt: 22,
         lampCY: 29, lampOuter: 29, plateCY: 39, plateW: 16, plateH: 7,
         splitY: 43, bot: 47, tyreTop: 36, tyreOuter: 30, tyreW: 9, diffHW: 11,
@@ -215,13 +219,13 @@ function carSpec(def: VehicleDef): Spec {
     case 'roadster':
       s = open ? {
         w: 88, h: 56, roofTop: 9,
-        prof: [[9, 26], [10, 28], [11, 29], [16, 33], [22, 37], [26, 40], [32, 42], [40, 43], [45, 43], [48, 42], [51, 40], [54, 37]],
+        prof: [[9, 26], [10, 28], [11, 29], [16, 33], [22, 37], [26, 40], [32, 42], [40, 43], [45, 43], [48, 42], [50, 40], [54, 33]],
         glassY0: 1, glassY1: 8, glassHW: [19, 25], belt: 9,
         lampCY: 21, lampOuter: 38, plateCY: 33, plateW: 22, plateH: 8,
         splitY: 39, bot: 50, tyreTop: 36, tyreOuter: 42, tyreW: 12, diffHW: 18, open: true,
       } : {
         w: 88, h: 58, roofTop: 3,
-        prof: [[3, 22], [4, 24], [5, 25], [9, 26], [10, 27], [18, 32], [24, 37], [28, 40], [34, 42], [42, 43], [47, 42], [50, 40], [53, 37]],
+        prof: [[3, 22], [4, 24], [5, 25], [9, 26], [10, 27], [18, 32], [24, 37], [28, 40], [34, 42], [42, 43], [47, 42], [50, 40], [53, 32]],
         glassY0: 10, glassY1: 22, glassHW: [20, 25], belt: 23,
         lampCY: 31, lampOuter: 38, plateCY: 41, plateW: 22, plateH: 8,
         splitY: 45, bot: 53, tyreTop: 40, tyreOuter: 42, tyreW: 12, diffHW: 18,
@@ -230,7 +234,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'wagon':
       s = {
         w: 92, h: 68, roofTop: 3,
-        prof: [[3, 27], [4, 29], [5, 30], [9, 31], [28, 38], [34, 42], [40, 44], [48, 45], [54, 44], [57, 42], [60, 40], [63, 37]],
+        prof: [[3, 27], [4, 29], [5, 30], [9, 31], [28, 38], [34, 42], [40, 44], [48, 45], [54, 44], [57, 42], [60, 40], [63, 32]],
         glassY0: 8, glassY1: 30, glassHW: [27, 31], belt: 31,
         lampCY: 39, lampOuter: 42, plateCY: 50, plateW: 24, plateH: 8,
         splitY: 55, bot: 63, tyreTop: 48, tyreOuter: 44, tyreW: 12, diffHW: 20,
@@ -239,7 +243,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'luxury':
       s = {
         w: 96, h: 66, roofTop: 4,
-        prof: [[4, 27], [5, 29], [6, 30], [13, 31], [14, 32], [22, 36], [28, 40], [32, 43], [38, 46], [44, 47], [52, 47], [55, 46], [58, 44], [61, 41]],
+        prof: [[4, 27], [5, 29], [6, 30], [13, 31], [14, 32], [22, 36], [28, 40], [32, 43], [38, 46], [44, 47], [52, 47], [55, 46], [58, 44], [61, 35]],
         glassY0: 14, glassY1: 28, glassHW: [26, 30], belt: 29,
         lampCY: 38, lampOuter: 42, plateCY: 49, plateW: 28, plateH: 9,
         splitY: 54, bot: 61, tyreTop: 48, tyreOuter: 46, tyreW: 12, diffHW: 24,
@@ -248,7 +252,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'suv':
       s = {
         w: 94, h: 76, roofTop: 2,
-        prof: [[2, 29], [3, 31], [4, 32], [8, 33], [30, 40], [36, 43], [42, 45], [50, 46], [56, 45], [60, 43], [64, 41], [67, 38]],
+        prof: [[2, 29], [3, 31], [4, 32], [8, 33], [30, 40], [36, 43], [42, 45], [50, 46], [56, 45], [60, 43], [64, 41], [67, 33]],
         glassY0: 8, glassY1: 32, glassHW: [29, 33], belt: 33,
         lampCY: 42, lampOuter: 44, plateCY: 54, plateW: 26, plateH: 9,
         splitY: 59, bot: 67, tyreTop: 52, tyreOuter: 45, tyreW: 13, diffHW: 20,
@@ -256,17 +260,18 @@ function carSpec(def: VehicleDef): Spec {
       break;
     case 'pickup':
       s = {
-        w: 94, h: 72, roofTop: 2,
-        prof: [[2, 21], [3, 23], [4, 24], [12, 26], [13, 42], [16, 44], [24, 45], [50, 46], [56, 45], [60, 43], [63, 40]],
-        glassY0: 6, glassY1: 12, glassHW: [18, 22], belt: 13,
-        lampCY: 44, lampOuter: 44, plateCY: 56, plateW: 26, plateH: 8,
-        splitY: 50, bot: 63, tyreTop: 50, tyreOuter: 45, tyreW: 13, diffHW: 16,
+        w: 94, h: 74, roofTop: 2,
+        prof: [[2, 20], [3, 22], [4, 23], [16, 26], [17, 42], [19, 44], [26, 45], [52, 46], [58, 45], [62, 43], [65, 36]],
+        glassY0: 5, glassY1: 15, glassHW: [17, 21], belt: 16,
+        lampCY: 46, lampOuter: 44, plateCY: 58, plateW: 26, plateH: 8,
+        splitY: 53, bot: 65, tyreTop: 52, tyreOuter: 45, tyreW: 13, diffHW: 14,
+        mirrorY: 12,
       };
       break;
     case 'van':
       s = {
         w: 78, h: 76, roofTop: 2,
-        prof: [[2, 27], [3, 29], [4, 30], [8, 31], [40, 33], [56, 33], [60, 32], [64, 30], [67, 28]],
+        prof: [[2, 27], [3, 29], [4, 30], [8, 31], [40, 33], [56, 33], [60, 32], [64, 30], [67, 24]],
         glassY0: 8, glassY1: 26, glassHW: [26, 29], belt: 27,
         lampCY: 40, lampOuter: 32, plateCY: 53, plateW: 22, plateH: 8,
         splitY: 58, bot: 67, tyreTop: 54, tyreOuter: 33, tyreW: 10, diffHW: 12,
@@ -275,7 +280,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'hyper':
       s = {
         w: 100, h: 58, roofTop: 4,
-        prof: [[4, 22], [5, 24], [6, 26], [10, 29], [16, 34], [22, 40], [28, 45], [34, 48], [42, 49], [46, 48], [49, 46], [52, 43]],
+        prof: [[4, 22], [5, 24], [6, 26], [10, 29], [16, 34], [22, 40], [28, 45], [34, 48], [42, 49], [46, 49], [49, 47], [52, 41]],
         glassY0: 10, glassY1: 24, glassHW: [24, 32], belt: 25,
         lampCY: 30, lampOuter: 46, plateCY: 39, plateW: 24, plateH: 8,
         splitY: 43, bot: 52, tyreTop: 38, tyreOuter: 48, tyreW: 14, diffHW: 28,
@@ -284,7 +289,7 @@ function carSpec(def: VehicleDef): Spec {
     case 'limo':
       s = {
         w: 96, h: 70, roofTop: 2,
-        prof: [[2, 23], [3, 25], [4, 26], [22, 29], [24, 31], [30, 36], [34, 40], [40, 44], [46, 46], [54, 46], [57, 45], [60, 43], [64, 40]],
+        prof: [[2, 23], [3, 25], [4, 26], [22, 29], [24, 31], [30, 36], [34, 40], [40, 44], [46, 46], [54, 46], [57, 45], [61, 43], [66, 35]],
         glassY0: 25, glassY1: 36, glassHW: [27, 31], belt: 37,
         lampCY: 45, lampOuter: 43, plateCY: 55, plateW: 26, plateH: 8,
         splitY: 60, bot: 66, tyreTop: 54, tyreOuter: 45, tyreW: 12, diffHW: 22,
@@ -302,7 +307,7 @@ function carSpec(def: VehicleDef): Spec {
     default:
       s = {
         w: 92, h: 66, roofTop: 5,
-        prof: [[5, 25], [6, 27], [7, 28], [12, 29], [13, 30], [22, 34], [29, 38], [33, 41], [38, 44], [44, 45], [52, 45], [55, 44], [58, 42], [61, 39]],
+        prof: [[5, 25], [6, 27], [7, 28], [12, 29], [13, 30], [22, 34], [29, 38], [33, 41], [38, 44], [44, 45], [52, 45], [55, 44], [58, 42], [61, 34]],
         glassY0: 13, glassY1: 28, glassHW: [24, 28], belt: 29,
         lampCY: 38, lampOuter: 39, plateCY: 49, plateW: 24, plateH: 8,
         splitY: 54, bot: 61, tyreTop: 48, tyreOuter: 44, tyreW: 12, diffHW: 20,
@@ -330,8 +335,8 @@ function paintBody(g: Grid, s: Spec): void {
   const hr = halfAt(s.prof, s.roofTop);
   g.hline(cx - hr + 1, cx + hr - 2, s.roofTop, 'H');
   // lower body gets darker toward the ground
-  for (let y = s.splitY; y <= s.bot; y++) hlineOver(g, cx - 60, cx + 60, y, y > s.splitY + 3 ? 'b' : 'b', 'B');
-  for (let y = s.bot - 1; y <= s.bot; y++) hlineOver(g, cx - 60, cx + 60, y, 'N', 'Bb');
+  for (let y = s.splitY + 1; y <= s.bot; y++) hlineOver(g, cx - 64, cx + 64, y, 'b', 'B');
+  hlineOver(g, cx - 64, cx + 64, s.bot, 'N', 'Bb');
 }
 
 function paintGlass(g: Grid, s: Spec, def: VehicleDef): void {
@@ -348,26 +353,27 @@ function paintGlass(g: Grid, s: Spec, def: VehicleDef): void {
     const hw = gHW(s, y);
     g.hline(cx - hw, cx + hw - 1, y, 'Z');
   }
-  // sheen: lighter top band + a diagonal streak on the left
+  // sheen: a lit top edge and one diagonal reflection streak
   const hwTop = gHW(s, s.glassY0);
-  g.hline(cx - hwTop + 1, cx + hwTop - 2, s.glassY0, 'G');
+  g.hline(cx - hwTop + 1, cx + hwTop - 2, s.glassY0, 'z');
   const n = s.glassY1 - s.glassY0;
-  for (let i = 1; i < Math.max(2, n - 2); i++) {
+  for (let i = 1; i < Math.max(2, n - 3); i++) {
     const y = s.glassY0 + i;
     const hw = gHW(s, y);
-    over(g, cx - hw + 2 + i, y, 'z', 'ZG');
-    over(g, cx - hw + 3 + i, y, 'z', 'ZG');
+    over(g, cx - hw + 2 + i, y, 'G', 'Zz');
+    if (i < 3) over(g, cx - hw + 3 + i, y, 'z', 'ZzG');
   }
   // interior: parcel shelf + head rests
   const shelf = s.glassY1;
   const hwB = gHW(s, shelf);
-  g.hline(cx - hwB + 1, cx + hwB - 2, shelf, 'k');
+  g.hline(cx - hwB + 1, cx + hwB - 2, shelf, 'K');
   if (n >= 8) {
-    const hx = Math.round(hwB * 0.48);
-    const top = Math.max(s.glassY0 + 2, shelf - Math.round(n * 0.45));
-    for (const sx of [cx - hx - 3, cx + hx - 3]) {
-      g.rect(sx, top, 6, shelf - top, 'k');
-      g.hline(sx + 1, sx + 4, top, 'D');
+    const hx = Math.round(hwB * 0.46);
+    const top = Math.max(s.glassY0 + 3, shelf - Math.round(n * 0.4));
+    for (const sx of [cx - hx - 3, cx + hx - 2]) {
+      g.rect(sx, top, 5, shelf - top, 'D');
+      g.hline(sx + 1, sx + 3, top, 'd');
+      g.vline(sx, top + 1, shelf - 1, 'K');
     }
   }
   if (d.extra === 'vip') {
@@ -1121,68 +1127,72 @@ function apcGrid(def: VehicleDef): Grid {
 
 function monsterGrid(def: VehicleDef): Grid {
   const d = def.details ?? {};
-  const w = 116, h = 116, cx = w >> 1;
+  const w = 120, h = 116, cx = w >> 1;
   const g = new Grid(w, h);
-  // axle + differential
-  g.rect(cx - 42, 86, 84, 6, 'd');
-  g.hline(cx - 42, cx + 41, 86, 'e');
-  g.hline(cx - 42, cx + 41, 91, 'D');
-  g.ellipse(cx, 89, 9, 7, 'd'); g.ellipse(cx, 89, 6, 5, 'e'); g.ellipse(cx, 89, 3, 2, 'd');
-  for (const sx of [cx - 30, cx + 28]) { g.rect(sx, 60, 3, 26, 'e'); g.rect(sx, 66, 3, 3, 'd'); g.rect(sx, 74, 3, 3, 'd'); }
+  // live axle, differential, shocks — drawn first so the tyres cap its ends
+  g.rect(cx - 42, 88, 84, 7, 'd');
+  g.hline(cx - 42, cx + 41, 88, 'e');
+  g.hline(cx - 42, cx + 41, 94, 'D');
+  g.ellipse(cx, 91, 10, 8, 'd'); g.ellipse(cx, 91, 7, 6, 'e'); g.ellipse(cx, 91, 3, 3, 'd');
+  for (const sx of [cx - 30, cx + 28]) {
+    g.rect(sx, 62, 3, 28, 'e');
+    for (let y = 66; y < 88; y += 4) g.rect(sx, y, 3, 2, 'd');
+  }
+  // body: cab + bed sitting high over the axle
+  g.rect(cx - 28, 14, 56, 26, 'B');
+  g.hline(cx - 27, cx + 26, 13, 'H');
+  g.rect(cx - 23, 17, 46, 15, 'k'); g.rect(cx - 21, 19, 42, 11, 'Z');
+  g.hline(cx - 20, cx + 19, 19, 'z');
+  for (let i = 0; i < 7; i++) g.px(cx - 17 + i, 21 + i, 'G');
+  g.rect(cx - 19, 26, 8, 6, 'D'); g.rect(cx + 12, 26, 8, 6, 'D');
+  g.rect(cx - 36, 40, 72, 48, 'B');
+  g.hline(cx - 35, cx + 34, 39, 'H'); g.hline(cx - 35, cx + 34, 40, 'h');
+  for (let y = 40; y <= 88; y++) { g.px(cx - 36, y, 'b'); g.px(cx - 35, y, 'b'); g.px(cx + 34, y, 'b'); g.px(cx + 35, y, 'b'); }
+  g.rect(cx - 36, 83, 72, 5, 'b');
+  g.hline(cx - 34, cx + 33, 56, 'k'); // tailgate seam
+  g.rect(cx - 7, 58, 14, 3, 'C'); g.hline(cx - 7, cx + 6, 58, 'w');
   // giant tyres
   for (const sgn of [-1, 1]) {
-    const wx = cx + sgn * 36;
-    g.circle(wx, 93, 22, 'K');
-    for (let a = 0; a < 24; a++) {
-      const t = (a / 24) * Math.PI * 2;
+    const wx = cx + sgn * 39;
+    g.circle(wx, 96, 19, 'K');
+    for (let a = 0; a < 22; a++) {
+      const t = (a / 22) * Math.PI * 2;
       const c = a % 2 ? 'D' : 'd';
-      g.px(wx + Math.round(Math.cos(t) * 21), 93 + Math.round(Math.sin(t) * 21), c);
-      g.px(wx + Math.round(Math.cos(t) * 19), 93 + Math.round(Math.sin(t) * 19), c);
+      g.px(wx + Math.round(Math.cos(t) * 18), 96 + Math.round(Math.sin(t) * 18), c);
+      g.px(wx + Math.round(Math.cos(t) * 16), 96 + Math.round(Math.sin(t) * 16), c);
     }
-    g.circle(wx, 93, 9, 'W'); g.circle(wx, 93, 6, 'C'); g.circle(wx, 93, 3, 'W');
+    g.circle(wx, 96, 8, 'W'); g.circle(wx, 96, 5, 'C'); g.circle(wx, 96, 2, 'W');
     for (let a = 0; a < 5; a++) {
-      const t = (a / 5) * Math.PI * 2;
-      g.px(wx + Math.round(Math.cos(t) * 7), 93 + Math.round(Math.sin(t) * 7), 'e');
+      const t = (a / 5) * Math.PI * 2 + 0.4;
+      g.px(wx + Math.round(Math.cos(t) * 6), 96 + Math.round(Math.sin(t) * 6), 'e');
     }
   }
-  // body: cab + bed high above the wheels
-  g.rect(cx - 30, 16, 60, 22, 'B');
-  g.hline(cx - 29, cx + 28, 15, 'H');
-  g.rect(cx - 24, 19, 48, 12, 'k'); g.rect(cx - 22, 21, 44, 8, 'Z');
-  g.hline(cx - 21, cx + 20, 21, 'G');
-  for (let i = 0; i < 6; i++) g.px(cx - 18 + i, 23 + i, 'z');
-  g.rect(cx - 40, 38, 80, 34, 'B');
-  g.hline(cx - 39, cx + 38, 37, 'H'); g.hline(cx - 39, cx + 38, 38, 'H');
-  for (let y = 38; y <= 72; y++) { g.px(cx - 40, y, 'b'); g.px(cx + 39, y, 'b'); }
-  g.rect(cx - 40, 68, 80, 5, 'b');
-  g.hline(cx - 38, cx + 37, 52, 'k');
-  g.rect(cx - 6, 54, 12, 3, 'C');
   // roll bar + light pods
-  g.rect(cx - 26, 8, 4, 10, 'd'); g.rect(cx + 22, 8, 4, 10, 'd');
-  g.rect(cx - 26, 6, 52, 3, 'd'); g.hline(cx - 25, cx + 24, 6, 'e');
-  for (let i = 0; i < 4; i++) { const x = cx - 20 + i * 12; g.ellipse(x, 3, 4, 3, 'D'); g.ellipse(x, 3, 3, 2, 'Y'); g.px(x - 1, 2, 'w'); }
-  // stacks
-  for (const sx of [cx - 36, cx + 33]) { g.rect(sx, 24, 4, 16, 'C'); g.px(sx, 24, 'e'); g.px(sx + 3, 24, 'e'); }
+  g.rect(cx - 24, 6, 4, 10, 'd'); g.rect(cx + 20, 6, 4, 10, 'd');
+  g.rect(cx - 24, 4, 48, 3, 'd'); g.hline(cx - 23, cx + 22, 4, 'e');
+  for (let i = 0; i < 4; i++) { const x = cx - 18 + i * 12; g.ellipse(x, 1, 4, 2, 'D'); g.ellipse(x, 1, 3, 1, 'Y'); g.px(x - 1, 0, 'w'); }
+  // exhaust stacks
+  for (const sx of [cx - 33, cx + 30]) { g.rect(sx, 26, 4, 16, 'C'); g.hline(sx, sx + 3, 26, 'e'); }
   // lamps, plate, flames
-  for (const sgn of [-1, 1]) boxLamp(g, sgn < 0 ? cx - 38 : cx + 18, 58, 20, 9, sgn < 0);
-  const s: Spec = { ...carSpec(def), w, h, plateCY: 62, plateW: 24, plateH: 8 };
+  for (const sgn of [-1, 1]) boxLamp(g, sgn < 0 ? cx - 34 : cx + 14, 62, 20, 9, sgn < 0);
+  const s: Spec = { ...carSpec(def), w, h, plateCY: 67, plateW: 24, plateH: 8 };
   plate(g, s, def);
   if (d.stripe === 'flames') {
     const fl = ['...o.....o...', '..ooy...ooy..', '.oooyy.ooyyo.', 'ooooyyyoyyyoo'];
     for (const sgn of [-1, 1]) for (let j = 0; j < fl.length; j++) for (let i = 0; i < fl[j].length; i++) {
       const c = fl[j][i];
       if (c === '.') continue;
-      const x = sgn < 0 ? cx - 38 + i : cx + 37 - i;
-      over(g, x, 40 + j, c === 'o' ? 'A' : 'y', 'BbHhN');
+      const x = sgn < 0 ? cx - 34 + i : cx + 33 - i;
+      over(g, x, 44 + j, c === 'o' ? 'A' : 'y', 'BbHhN');
     }
   }
   if (d.number !== undefined) {
     const str = String(d.number);
     const bw2 = textW(str) + 4;
-    g.box(cx - (bw2 >> 1) - 1, 41, bw2 + 2, 9, 'k', 'w');
-    text(g, str, cx - (bw2 >> 1) + 2, 43, 'K');
+    g.box(cx - (bw2 >> 1) - 1, 45, bw2 + 2, 9, 'k', 'w');
+    text(g, str, cx - (bw2 >> 1) + 2, 47, 'K');
   }
-  if (d.bumper === 'bull') { g.rect(cx - 42, 72, 84, 4, 'C'); g.hline(cx - 41, cx + 40, 72, 'w'); for (const sx of [cx - 16, cx + 14]) g.rect(sx, 68, 2, 8, 'C'); }
+  if (d.bumper === 'bull') { g.rect(cx - 38, 78, 76, 4, 'C'); g.hline(cx - 37, cx + 36, 78, 'w'); for (const sx of [cx - 16, cx + 14]) g.rect(sx, 74, 2, 9, 'C'); }
   return g;
 }
 

@@ -57,8 +57,8 @@ export function drawHud(g: Game, ps: PlayScreen): void {
     const big = w.combo >= 5;
     const scale = big ? 2 : 1;
     const pop = Math.max(0, 1 - (3 - w.comboT) * 4);
-    r.text(`${w.combo}×`, r.w - 8, cy + 1 - Math.round(pop * 2), { align: 'right', color: big ? P.pinkLight : P.yellow, outline: P.black, scale });
-    r.text('COMBO', r.w - 8, cy + 2 + scale * 8, { align: 'right', color: P.gray1, outline: P.black });
+    r.text(`${w.combo}× COMBO`, r.w - 8, cy + 2 - Math.round(pop * 2), { align: 'right', color: big ? P.pinkLight : P.yellow, outline: P.black, scale: 1 });
+    void scale;
   }
 
   // ── boost / energy strip above the speedometer ───────────────────────────

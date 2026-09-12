@@ -220,6 +220,11 @@ export class World {
     this.fx.burst(x, y - 12, 14, { speed: 90, color: '#ffe870', life: 0.4, size: 2, gravity: 200 });
   }
 
+  /** Scale factor that keeps a vehicle sprite at most ~1.15 lanes wide. */
+  fitScale(spr: PixelSprite): number {
+    return Math.min(1, (this.road.laneW * 1.15) / spr.w);
+  }
+
   damagedSprite(spr: PixelSprite, t: number): PixelSprite {
     const lvl = t <= 0.001 ? 0 : t < 0.34 ? 1 : t < 0.67 ? 2 : 3;
     if (lvl === 0) return spr;
@@ -259,8 +264,8 @@ export class World {
     // finish
     if (!this.finished && this.distance >= this.level.length) { this.finished = true; this.emit('finish'); }
     if (this.finished) this.finishT += dt;
-    // spawn traffic rows
-    if (!this.finished && this.distance + SPAWN_Z > this.spawnDist) {
+    // spawn traffic rows (capped so the road never becomes an impassable wall)
+    if (!this.finished && this.distance + SPAWN_Z > this.spawnDist && this.traffic.length < this.lanes * 4) {
       this.spawnRow(this.spawnDist - this.distance);
     }
     // coins
@@ -400,11 +405,14 @@ export class World {
     const free = lanesArr.filter((l) => !blocked.includes(l));
     this.lastFree = free;
     for (const l of blocked) {
-      const tpl = this.pickTemplate();
-      this.spawnTraffic(l, z + this.rng.range(0, 6), tpl);
+      const zz = z + this.rng.range(0, 6);
+      // keep a clear gap behind the last car in this lane so traffic never stacks into a wall
+      const last = this.traffic.reduce((m, t) => (Math.abs(t.laneX - l) < 0.6 ? Math.max(m, t.z) : m), -999);
+      if (last > zz - 22) continue;
+      this.spawnTraffic(l, zz, this.pickTemplate());
     }
-    const gap = 26 + (1 - density) * 40;
-    this.spawnDist += this.rng.range(gap * 0.8, gap * 1.3);
+    const gap = 34 + (1 - density) * 46;
+    this.spawnDist += this.rng.range(gap * 0.85, gap * 1.4);
   }
 
   private takeCoin(c: Coin, i: number): void {
@@ -463,11 +471,11 @@ export class World {
     const road = this.road;
     // sky
     r.bandedGradient(0, 0, r.w, road.hy + 2, [this.pal.skyTop, this.pal.skyBottom], 12);
-    if (this.showSlogans) this.renderSlogans();
     for (const m of this.mechanics) m.renderBack?.();
     // skyline (parallax with curve + lane)
     const px = -road.curve * 30 - road.camLaneX * 3;
     drawSkyline(r, this.city, this.level.timeOfDay, px, road.hy, this.time, this.mod.fog);
+    if (this.showSlogans) this.renderSlogans();
     // road
     road.render(this.pal, this.mod.fog);
     for (const m of this.mechanics) m.renderRoad?.();
@@ -561,13 +569,29 @@ export class World {
     const r = this.game.r;
     const [l, rr] = this.city.slogans ?? ['走り続けろ', '夢の先へ'];
     const [cl, cr] = this.city.captions ?? ['DRIVE\nBEYOND\nLIMITS', 'CARS\nPEOPLE\nSTORIES\nFOREVER'];
-    const top = r.safeTop + 44;
-    const ls = kanjiSprite(l, { size: 14, vertical: true, color: '#f4f4f0', outline: '#16161f', gap: 2 });
-    const rs = kanjiSprite(rr, { size: 14, vertical: true, color: '#f4f4f0', outline: '#16161f', gap: 2 });
-    r.sprite(ls, 8, top, { origin: 'topleft', alpha: 0.92 });
-    r.sprite(rs, r.w - 8 - rs.w, top, { origin: 'topleft', alpha: 0.92 });
-    r.text(cl, 8, top + ls.h + 4, { color: '#f4f4f0', outline: '#16161f', alpha: 0.85, lineHeight: 8 });
-    r.text(cr, r.w - 8, top + rs.h + 4, { color: '#f4f4f0', outline: '#16161f', alpha: 0.85, align: 'right', lineHeight: 8 });
+    const top = r.safeTop + 56;
+    const sky = this.road.hy - top;
+    if (sky < 60) return;
+    const size = sky < 150 ? 11 : 13;
+    // CJK/Thai/Devanagari read well stacked vertically; other scripts are drawn as normal lines
+    const stack = /[\u3000-\u9fff\uff00-\uffef\uac00-\ud7af\u0e00-\u0e7f\u0900-\u097f]/;
+    const side = (text: string, x: number, right: boolean): number => {
+      if (stack.test(text)) {
+        const spr = kanjiSprite(text, { size, vertical: true, color: '#f4f4f0', outline: '#16161f', gap: 1 });
+        r.sprite(spr, right ? x - spr.w : x, top, { origin: 'topleft', alpha: 0.9 });
+        return spr.h;
+      }
+      // horizontal: one word per line, bold pixel font
+      const spr = kanjiSprite(text, { size: 13, color: '#f4f4f0', outline: '#16161f' });
+      r.sprite(spr, right ? x - spr.w : x, top, { origin: 'topleft', alpha: 0.9 });
+      return spr.h;
+    };
+    const lh = side(l, 6, false);
+    const rh = side(rr, r.w - 6, true);
+    if (top + Math.max(lh, rh) + 34 < this.road.hy - 70) {
+      r.text(cl, 6, top + lh + 4, { color: '#f4f4f0', outline: '#16161f', alpha: 0.85, lineHeight: 8 });
+      r.text(cr, r.w - 6, top + rh + 4, { color: '#f4f4f0', outline: '#16161f', alpha: 0.85, align: 'right', lineHeight: 8 });
+    }
   }
 
   /** Ambient sakura petals for cities with cherry trees. */
@@ -595,23 +619,25 @@ export class World {
   }
   private renderTraffic(t: Traffic): void {
     const r = this.game.r;
+    if (t.z < -2.5) return;
     const p = this.road.project(t.laneX, t.z);
     if (p.s <= 0.02) return;
     let spr = t.tpl.sprite;
-    const w = Math.round(spr.w * p.s * 0.9);
+    const fit = this.fitScale(spr) * p.s;
+    const w = Math.round(spr.w * fit * 0.9);
     r.fillRect(p.x - w / 2, p.y - 2 * p.s, w, Math.max(1, 3 * p.s), '#000000', 0.3);
     if (t.state === 'wreck') spr = darkenSprite(spr, Math.min(0.7, 0.3 + t.wreckT * 0.3));
     const fogT = this.mod.fog > 0 ? Math.min(1, this.mod.fog * (1 - this.road.sAt(t.z)) * 1.4) : 0;
     const alpha = 1 - fogT * 0.85;
     const yy = p.y - t.launch * p.s - t.bump;
     if (t.bump > 0) t.bump = Math.max(0, t.bump - 0.5);
-    if (t.flash > 0.05) r.sprite(this.tint(spr, '#ffffff'), p.x, yy, { scale: p.s, alpha });
-    else r.sprite(spr, p.x, yy, { scale: p.s, alpha });
-    if (t.state === 'frozen') { r.sprite(this.tint(spr, '#40e0f0'), p.x, yy, { scale: p.s, alpha: 0.55 }); }
+    if (t.flash > 0.05) r.sprite(this.tint(spr, '#ffffff'), p.x, yy, { scale: fit, alpha });
+    else r.sprite(spr, p.x, yy, { scale: fit, alpha });
+    if (t.state === 'frozen') { r.sprite(this.tint(spr, '#40e0f0'), p.x, yy, { scale: fit, alpha: 0.55 }); }
     if (t.tpl.boss && t.state !== 'wreck') {
       const bw = Math.round(30 * p.s);
-      r.fillRect(p.x - bw / 2, yy - spr.h * p.s - 6 * p.s, bw, Math.max(2, 3 * p.s), '#0b0b12');
-      r.fillRect(p.x - bw / 2 + 1, yy - spr.h * p.s - 6 * p.s + 1, Math.round((bw - 2) * (t.hp / t.tpl.hp)), Math.max(1, 3 * p.s - 2), '#e0202a');
+      r.fillRect(p.x - bw / 2, yy - spr.h * fit - 6 * p.s, bw, Math.max(2, 3 * p.s), '#0b0b12');
+      r.fillRect(p.x - bw / 2 + 1, yy - spr.h * fit - 6 * p.s + 1, Math.round((bw - 2) * (t.hp / t.tpl.hp)), Math.max(1, 3 * p.s - 2), '#e0202a');
     }
   }
   private tintCache = new Map<string, PixelSprite>();

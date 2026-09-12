@@ -64,6 +64,12 @@ class Pen {
   solid(x: number, y: number): boolean { return this.inside(x, y) && this.d[this.i(x, y) + 3] > 0; }
   isOutline(x: number, y: number): boolean { if (!this.solid(x, y)) return false; const i = this.i(x, y); return OUTLINE_COLS.some((c) => this.same(i, c)); }
   isBody(x: number, y: number): boolean { if (!this.solid(x, y)) return false; const i = this.i(x, y); return this.bodyCols.some((c) => this.same(i, c)); }
+  /** Perceived brightness 0..255 of an opaque pixel (0 when transparent). */
+  lum(x: number, y: number): number {
+    if (!this.solid(x, y)) return 0;
+    const i = this.i(x, y);
+    return 0.299 * this.d[i] + 0.587 * this.d[i + 1] + 0.114 * this.d[i + 2];
+  }
   private ok(x: number, y: number, m: Mode): boolean {
     if (!this.inside(x, y)) return false;
     if (m === 'any') return true;
@@ -219,30 +225,42 @@ function roofInfo(p: Pen): Roof {
   }
   return x1 >= x0 ? { plane, top, x0, x1, pod: true } : { plane, top: plane, x0: cx - 5, x1: cx + 5, pod: false };
 }
-/** Recolor an existing roof pod or draw a fresh one above the roof. Returns the pod rect. */
-function roofPod(p: Pen, bw: number, bh: number, border: string, fill: string): { x: number; y: number; w: number; h: number } {
+interface Pod { x: number; y: number; w: number; h: number; existed: boolean; labelled: boolean; }
+/**
+ * Recolor the roof pod the body template already drew (rear.ts gives every `taxi` body a TAXI sign)
+ * or draw a fresh one above the roof. With `keepDark` the pod's dark pixels — its lettering — survive
+ * the recolor, so tinting a sign keeps it readable.
+ */
+function roofPod(p: Pen, bw: number, bh: number, border: string, fill: string, keepDark = false): Pod {
   const r = roofInfo(p);
   if (r.pod && r.plane - r.top >= 3) {
     const x = r.x0, w = r.x1 - r.x0 + 1, y = r.top, h = r.plane - r.top;
-    p.rect(x, y, w, h, fill, 'in');
+    let labelled = false;
+    for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) {
+      if (!p.solid(i, j) || p.isOutline(i, j)) continue;
+      const dark = p.lum(i, j) < 100;
+      if (dark && keepDark) { if (i > x && i < x + w - 1 && j > y) labelled = true; continue; }
+      p.px(i, j, fill);
+    }
     for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) {
       if (!p.solid(i, j)) continue;
       if (!p.solid(i - 1, j) || !p.solid(i + 1, j) || !p.solid(i, j - 1)) p.px(i, j, border);
     }
-    return { x, y, w, h };
+    return { x, y, w, h, existed: true, labelled };
   }
   const x = (p.w >> 1) - (bw >> 1), y = Math.max(0, r.plane - bh);
   p.frame(x, y, bw, bh, border, fill);
-  return { x, y, w: bw, h: bh };
+  return { x, y, w: bw, h: bh, existed: false, labelled: false };
 }
 /** Lit taxi roof sign with a tiny label. */
 function taxiSign(p: Pen, fill: string, label = 'TAXI', labelCol: string = P.black, border: string = P.black): void {
   const bw = Math.max(12, Math.round(p.w * 0.26)) | 1;
   const bh = Math.max(7, Math.round(p.h * 0.15));
-  const r = roofPod(p, bw, bh, border, fill);
+  const r = roofPod(p, bw, bh, border, fill, true);
+  if (r.labelled) return;                                  // the body template already lettered it
   if (r.w >= label.length * 4 + 2 && r.h >= 7) p.textMid(label, r.x + r.w / 2, r.y + Math.round((r.h - 5) / 2), labelCol, 'in');
   else if (r.h >= 4) p.hline(r.x + 2, r.x + r.w - 3, r.y + (r.h >> 1), labelCol, 'in');
-  p.hline(r.x + 1, r.x + r.w - 2, r.y + 1, shade(fill, 0.35), 'in');
+  else p.hline(r.x + 1, r.x + r.w - 2, r.y + 1, shade(fill, 0.35), 'in');
 }
 /** Police lightbar (or a single dome when `dome`). */
 function lightbar(p: Pen, left: string = P.red, right = '#2a5cf0', dome = false): void {
@@ -297,19 +315,13 @@ function rowBand(p: Pen, f0: number, f1: number, insetF: number, col: (x: number
 function chevrons(p: Pen, f0: number, f1: number, a: string, b: string, m: Mode = 'in'): void {
   rowBand(p, f0, f1, 0.1, (x, y) => ((x + y) % 8 < 4 ? a : b), m);
 }
-/** Neon underglow + marker lamps along the silhouette (dekotora, party rigs). */
+/** Neon underglow strip + a row of marker lamps along the roof edge (dekotora, party rigs). */
 function neonTrim(p: Pen, cols: string[]): void {
   for (let x = 0; x < p.w; x++) {
     const t = p.top(x);
-    if (t >= 0) p.px(x, t + 1, cols[(x >> 2) % cols.length], 'in');
+    if (t >= 0 && x % 5 === 0) p.px(x, t + 1, cols[(x >> 2) % cols.length], 'in');
   }
-  for (let y = yf(p, 0.3); y < p.h; y += 4) {
-    const e = p.edges(y);
-    if (!e) continue;
-    p.px(e[0] + 1, y, cols[(y >> 2) % cols.length], 'in');
-    p.px(e[1] - 1, y, cols[(y >> 2) % cols.length], 'in');
-  }
-  rowBand(p, 0.86, 0.9, 0.14, (x) => cols[(x >> 2) % cols.length], 'in');
+  rowBand(p, 0.86, 0.89, 0.14, (x) => cols[(x >> 1) % cols.length], 'in');
 }
 /** Big cargo circle (tanker end cap / mixer drum). */
 function drum(p: Pen, cy: number, r: number, paint: (x: number, y: number, d: number) => string | null): void {
@@ -459,8 +471,8 @@ function build(): TrafficTemplate[] {
   // ── police ─────────────────────────────────────────────────────────────────
   const pPolDe = pal('#c4c8d2', { accent: '#1a3ca8', glass: GLASS });
   out.push(civil('police_de', mk('police_de', 'police', pPolDe, { lights: 'square' }, 14, (p) => {
-    bandY(p, 0.46, 0.62, '#1a3ca8');
-    if (p.w >= 44) p.textMid('POLIZEI', p.w / 2, yf(p, 0.5), '#eceee8', 'in');
+    bandY(p, 0.4, 0.54, '#1a3ca8');
+    if (p.w >= 44) p.textMid('POLIZEI', p.w / 2, yf(p, 0.43), '#eceee8', 'in');
     lightbar(p, '#2a5cf0', '#2a5cf0');
   }), 1.1));
 
@@ -479,10 +491,12 @@ function build(): TrafficTemplate[] {
 
   const pPolUk = pal('#eceee8', { accent: '#f0c020', glass: GLASS });
   out.push(civil('police_uk', mk('police_uk', 'police', pPolUk, { lights: 'square' }, 14, (p) => {
-    bandY(p, 0.44, 0.72, '#f0c020');
-    const y0 = yf(p, 0.44), y1 = yf(p, 0.72), ch = Math.max(3, Math.round((y1 - y0) / 2));
+    // battenburg: one pass, otherwise the first colour would stop the second from seeing body pixels
+    const y0 = yf(p, 0.44), y1 = yf(p, 0.74), ch = Math.max(3, Math.round((y1 - y0) / 2));
+    const cw = Math.max(4, Math.round(p.w * 0.11));
     for (let y = y0; y <= y1; y++) for (let x = 0; x < p.w; x++) {
-      if (((((x / 5) | 0) + (((y - y0) / ch) | 0)) & 1) === 0) p.px(x, y, '#1a3ca8', 'body');
+      const on = ((((x / cw) | 0) + (((y - y0) / ch) | 0)) & 1) === 0;
+      p.px(x, y, on ? '#f0c020' : '#1a3ca8', 'body');
     }
     lightbar(p);
   }), 1.1));
@@ -503,10 +517,10 @@ function build(): TrafficTemplate[] {
   out.push(civil('scooter_pack', scooterPack(), 0.7));
 
   // ── city cars ──────────────────────────────────────────────────────────────
-  const pKei = pal('#e8eae4', { accent: '#40a0d0', glass: GLASS });
+  const pKei = pal('#e8eae4', { accent: '#17a08c', glass: GLASS });
   out.push(civil('kei_van', mk('kei_van', 'kei', pKei, { lights: 'square', roof: 'hard' }, 10, (p) => {
-    bandY(p, 0.56, 0.6, '#40a0d0');
-    p.rect(p.w / 2 - 3, yf(p, 0.64), 7, 4, '#1a6ad0', 'body');
+    bandY(p, 0.68, 0.72, '#17a08c');                             // shop van livery, low stripe
+    for (const dx of [-7, 0, 7]) p.rect(p.w / 2 + dx - 1, yf(p, 0.58), 3, 3, '#ffb7d0', 'body'); // sakura decals
   }), 0.9));
 
   const pLada = pal('#cdbf98', { accent: '#8a8a92', glass: GLASS });
@@ -614,8 +628,8 @@ function build(): TrafficTemplate[] {
     bandY(p, 0.2, 0.26, '#e0202a', 'body');
     bandY(p, 0.27, 0.3, '#f0c020', 'body');
     bandY(p, 0.31, 0.34, '#20b040', 'body');
-    bandY(p, 0.52, 0.6, '#14141c', 'body');
-    if (p.w >= 44) p.textMid('HORN OK', p.w / 2, yf(p, 0.54), '#f0c020', 'in');
+    rowBand(p, 0.5, 0.58, 0.08, () => '#14141c', 'in');          // painted "HORN OK PLEASE" plaque
+    if (p.w >= 44) p.textMid('HORN OK', p.w / 2, yf(p, 0.52), '#f0c020', 'in');
     for (let x = 4; x < p.w - 4; x += 6) {                       // painted lotus dots
       p.px(x, yf(p, 0.42), '#ff90c0', 'body'); p.px(x + 1, yf(p, 0.43), '#f0c020', 'body'); p.px(x - 1, yf(p, 0.43), '#f0c020', 'body');
     }
@@ -667,10 +681,10 @@ function build(): TrafficTemplate[] {
 
   const pDeko = pal('#d4d8e4', { accent: '#ffd040', glass: '#101620', chrome: '#eef0f8' });
   out.push(heavy('dekotora_traffic', mk('dekotora_traffic', 'truck', pDeko, { lights: 'strip', extra: 'neon' }, 12, (p) => {
-    bandY(p, 0.3, 0.36, '#ffd040', 'body');
-    bandY(p, 0.38, 0.4, '#e0202a', 'body');
+    // rear.ts already draws the chrome box, accent rows and DEKO/TORA lettering for extra 'neon' —
+    // this only adds the gold flank panel and the underglow.
+    bandY(p, 0.66, 0.71, '#ffd040', 'body');
     neonTrim(p, ['#40e0f0', '#e04080', '#ffd040', '#20e060']);
-    for (let x = 4; x < p.w - 4; x += 5) p.px(x, yf(p, 0.46), '#ffe870', 'in');
   }), 0.95));
 
   const pTank = pal('#c4c8d2', { accent: '#f07020', glass: GLASS });
@@ -736,7 +750,8 @@ function build(): TrafficTemplate[] {
     for (let y = yf(p, 0.2); y < p.h; y += 3) for (let x = (y * 7) % 11; x < p.w; x += 11) {  // camo blotches
       p.ellipse(x, y, 3, 2, (x + y) % 2 ? '#2e3a1e' : '#6a5a34', 'body');
     }
-    p.stamp(['#.#', '.#.', '#.#'], (p.w >> 1) - 1, yf(p, 0.42), { '#': '#e0202a' }, 2, 'in');
+    const s = p.w >= 90 ? 3 : 2;                                  // red star on the hull
+    p.stamp(['..#..', '.###.', '#####', '.###.', '##.##'], (p.w >> 1) - Math.round((5 * s) / 2), yf(p, 0.4), { '#': '#e0202a' }, s, 'in');
     chevrons(p, 0.9, 0.94, '#f0c020', '#14141c');
   }), 10, 0.85));
 

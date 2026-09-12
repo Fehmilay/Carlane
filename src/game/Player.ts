@@ -106,7 +106,7 @@ export class Player {
   private spawnEffects(dt: number): void {
     const w = this.w, fx = w.fx;
     const { x, y } = this.screen();
-    const s = this.sizeMul;
+    const s = this.sizeMul * this.w.fitScale(this.sprite);
     const half = Math.round(this.sprite.w * 0.28 * s);
     if (this.boosting && !this.dead) {
       const n = this.def.details?.exhaust ?? 2;
@@ -156,7 +156,7 @@ export class Player {
   render(): void {
     const r = this.w.game.r;
     const { x, y } = this.screen();
-    const s = this.sizeMul;
+    const s = this.sizeMul * this.w.fitScale(this.sprite);
     // shadow (shrinks + fades while airborne)
     const airT = Math.min(1, this.air / 60);
     const shW = Math.round(this.sprite.w * 0.9 * s * (1 - airT * 0.5)), shH = 4;

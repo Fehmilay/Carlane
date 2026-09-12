@@ -8,8 +8,8 @@ import { mix } from '../core/Palette';
  */
 export const Z0 = 20;
 export const PLAYER_Z = 2.0;
-export const LANE_W3 = 80; // lane width (px at player depth) for 3 lanes
-export const LANE_W5 = 64; // for 5 lanes
+export const LANE_W3 = 96; // lane width (px at player depth) for 3 lanes
+export const LANE_W5 = 80; // for 5 lanes
 export const SPAWN_Z = 150; // meters ahead where traffic appears
 
 export interface Projection { x: number; y: number; s: number; }
@@ -66,9 +66,18 @@ export class Road {
     const r = this.r, c = r.ctx;
     const hy = this.hy;
     const bottom = r.h;
-    // ground
+    // ground (darkened toward the horizon so the roadside has depth instead of reading as flat lawn)
     c.fillStyle = pal.ground;
     c.fillRect(0, hy, r.w, bottom - hy);
+    const horizonTint = mix(pal.ground, pal.skyTop, 0.55);
+    for (let y = hy; y < bottom; y++) {
+      const s = (y - hy) / this.roadH;
+      if (s > 0.6) break;
+      c.globalAlpha = (1 - s / 0.6) * 0.75;
+      c.fillStyle = horizonTint;
+      c.fillRect(0, y, r.w, 1);
+    }
+    c.globalAlpha = 1;
     for (let y = hy; y < bottom; y++) {
       const s = (y - hy) / this.roadH;
       if (s <= 0.002) continue;

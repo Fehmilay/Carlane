@@ -467,11 +467,11 @@ class Convoy extends BaseMechanic {
     const w = this.w;
     this.next -= dt;
     if (this.next <= 0 && !w.finished) {
-      this.next = rnd(10, 16);
+      this.next = rnd(14, 22);
       const lane = pickLane(w);
       const heavy = trafficTemplates().filter((t) => t.heavy && !t.boss);
       const t = heavy.length ? heavy[Math.floor(rnd(0, heavy.length))] : undefined;
-      for (let i = 0; i < 3; i++) w.spawnTraffic(lane, SPAWN_Z + i * 14, t, 0.9);
+      for (let i = 0; i < 3; i++) w.spawnTraffic(lane, SPAWN_Z + i * 20, t, 0.9);
       const esc = clamp(lane + (lane === 0 ? 1 : -1), 0, w.lanes - 1);
       w.spawnTraffic(esc, SPAWN_Z + 7, undefined, 0.9);
       warn(w, 'KONVOI', '#f4f4f0');
@@ -485,9 +485,9 @@ class TrafficJam extends BaseMechanic {
     const w = this.w;
     this.next -= dt;
     if (this.next <= 0 && !w.finished) {
-      this.next = rnd(14, 22);
+      this.next = rnd(18, 28);
       const free = pickLane(w);
-      for (let l = 0; l < w.lanes; l++) { if (l === free) continue; for (let row = 0; row < 3; row++) { const t = w.spawnTraffic(l, SPAWN_Z + row * 9 + rnd(0, 3), undefined, 0.35); t.bump = 0; } }
+      for (let l = 0; l < w.lanes; l++) { if (l === free) continue; for (let row = 0; row < 2; row++) { const t = w.spawnTraffic(l, SPAWN_Z + row * 14 + rnd(0, 4), undefined, 0.35); t.bump = 0; } }
       w.spawnCoinRow(free, SPAWN_Z + 2, 6, 5);
       warn(w, 'STAU!', '#f07020'); w.game.audio.sfx('horn');
     }
