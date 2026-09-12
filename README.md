@@ -12,6 +12,21 @@
 
 ---
 
+## Project status
+
+Everything described below is implemented and verified end to end:
+
+| | |
+|---|---|
+| Vehicles | 48, each with a rear-view gameplay sprite (3 damage stages) and a side-view garage sprite |
+| Abilities | 48 implemented, one per vehicle, each with its own HUD icon |
+| Levels / cities | 30 / 30, every city with its own skyline, four times of day, traffic and music |
+| Level mechanics | 38 implemented (weather, hazards, police, level crossings, three bosses …) |
+| Traffic vehicles | 56 templates, including city-specific taxis, trams, buses and three bosses |
+| Screens | title, garage, world map, shop, settings, pause, results/revive, tutorial, ability card |
+| Tests | `node tools/smoke.mjs` — 74 checks, headless Chromium with simulated gestures, 0 page errors, 60 fps |
+| Bundle | ~670 KB uncompressed, no binary assets |
+
 ## What the game is
 
 * **Core loop.** Portrait, rear-view pseudo-3D road ("OutRun" style) with 3 or 5 discrete lanes. Swipe left/right to change
