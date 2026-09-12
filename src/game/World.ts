@@ -77,6 +77,8 @@ export class World {
   hitStop = 0;
   /** freeze flag while overlays (tutorial) are shown */
   frozen = false;
+  /** draw the vertical kanji slogans in the sky (off on the title screen) */
+  showSlogans = true;
   private spawnDist = 90; // next traffic row at this distance
   private lastFree: number[] = [];
   private coinDist = 60;
@@ -461,7 +463,7 @@ export class World {
     const road = this.road;
     // sky
     r.bandedGradient(0, 0, r.w, road.hy + 2, [this.pal.skyTop, this.pal.skyBottom], 12);
-    this.renderSlogans();
+    if (this.showSlogans) this.renderSlogans();
     for (const m of this.mechanics) m.renderBack?.();
     // skyline (parallax with curve + lane)
     const px = -road.curve * 30 - road.camLaneX * 3;
@@ -508,8 +510,23 @@ export class World {
     x.fillStyle = '#0b0b12'; x.fillRect(0, 0, w, h - 12);
     x.fillStyle = '#0e6a2a'; x.fillRect(1, 1, w - 2, h - 14);
     x.fillStyle = '#f4f4f0'; x.fillRect(2, 2, w - 4, 1); x.fillRect(2, h - 15, w - 4, 1); x.fillRect(2, 2, 1, h - 16); x.fillRect(w - 3, 2, 1, h - 16);
-    lines.forEach((l, i) => font.draw(x, l, 6, 5 + i * 9, { color: '#f4f4f0' }));
-    font.draw(x, '→', w - 11, 5, { color: '#ffe870' });
+    // abstract "text" bars: real glyphs turn to mush once the sign is scaled down by depth
+    lines.forEach((l, i) => {
+      let bx = 6;
+      const ly = 6 + i * 9;
+      for (const word of l.split(' ')) {
+        const bw = Math.max(3, Math.min(w - 16 - bx, word.length * 3));
+        x.fillStyle = '#f4f4f0';
+        x.fillRect(bx, ly, bw, 4);
+        bx += bw + 3;
+        if (bx > w - 18) break;
+      }
+    });
+    x.fillStyle = '#ffe870';
+    x.fillRect(w - 12, 6 + Math.round((lines.length - 1) * 4.5), 7, 3);
+    x.fillRect(w - 8, 4 + Math.round((lines.length - 1) * 4.5), 3, 3);
+    x.fillRect(w - 8, 8 + Math.round((lines.length - 1) * 4.5), 3, 3);
+    void font;
     x.fillStyle = '#6a6a78'; x.fillRect(Math.round(w / 2) - 2, h - 12, 2, 12); x.fillRect(Math.round(w / 2) + 1, h - 12, 2, 12);
     const spr = spriteFromCanvas(key, c);
     signCache.set(key, spr);
