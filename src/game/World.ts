@@ -102,7 +102,11 @@ export class World {
     this.city = getCity(level.city);
     this.pal = this.city.palettes[level.timeOfDay] ?? this.city.palettes.day;
     const all = trafficTemplates();
-    this.templates = all.filter((t) => !t.heavy && !t.boss);
+    // Only generic civilian cars belong to the global pool — city-specific vehicles (tuk-tuks,
+    // London cabs, dolmuş…) must appear in their own city, which lists them in `city.traffic`.
+    const GENERIC = /^(sedan|hatch|coupe|wagon|suv|van|pickup)_/;
+    const generic = all.filter((t) => !t.heavy && !t.boss && GENERIC.test(t.id));
+    this.templates = generic.length ? generic : all.filter((t) => !t.heavy && !t.boss);
     this.heavyTemplates = all.filter((t) => t.heavy && !t.boss);
     this.cityTemplates = all.filter((t) => this.city.traffic.includes(t.id));
     this.player = new Player(this, vehicle, rearSprite(vehicle));
@@ -110,7 +114,7 @@ export class World {
     for (const m of level.mechanics) { const mech = createMechanic(m, this); if (mech) this.mechanics.push(mech); }
     for (const m of this.mechanics) m.start?.();
     // initial props
-    for (let z = 10; z < SPAWN_Z; z += 14) this.addProp(z);
+    for (let z = 10; z < SPAWN_Z; z += 26) this.addProp(z);
   }
 
   on(ev: WorldEvent, fn: (data?: unknown) => void): void { (this.listeners[ev] ??= []).push(fn); }
@@ -275,13 +279,13 @@ export class World {
       this.coinDist += this.rng.range(70, 140);
     }
     // props
-    if (this.distance + SPAWN_Z > this.propDist) { this.addProp(SPAWN_Z + this.rng.range(0, 8)); this.propDist = this.distance + this.rng.range(9, 18); }
+    if (this.distance + SPAWN_Z > this.propDist) { this.addProp(SPAWN_Z + this.rng.range(0, 8)); this.propDist = this.distance + this.rng.range(20, 38); }
     // regular lamp posts on both sides, city signs and neon billboards
     if (this.distance + SPAWN_Z > this.lampDist) {
       const lampId = this.city.lampProp ?? 'lamp';
       const lamp = lampId ? propSprite(lampId) : null;
       if (lamp) { this.props.push({ side: -1, z: SPAWN_Z, sprite: lamp, offset: 4 }, { side: 1, z: SPAWN_Z, sprite: lamp, offset: 4 }); }
-      this.lampDist += 48;
+      this.lampDist += 56;
     }
     if (this.distance + SPAWN_Z > this.signDist) {
       const side: -1 | 1 = this.signCount % 2 ? -1 : 1;
@@ -578,12 +582,12 @@ export class World {
     const side = (text: string, x: number, right: boolean): number => {
       if (stack.test(text)) {
         const spr = kanjiSprite(text, { size, vertical: true, color: '#f4f4f0', outline: '#16161f', gap: 1 });
-        r.sprite(spr, right ? x - spr.w : x, top, { origin: 'topleft', alpha: 0.9 });
+        r.sprite(spr, right ? x - spr.w : x, top, { origin: 'topleft', alpha: 0.85 });
         return spr.h;
       }
-      // horizontal: one word per line, bold pixel font
+      // horizontal: bold pixel font, held back so it never fights the HUD
       const spr = kanjiSprite(text, { size: 13, color: '#f4f4f0', outline: '#16161f' });
-      r.sprite(spr, right ? x - spr.w : x, top, { origin: 'topleft', alpha: 0.9 });
+      r.sprite(spr, right ? x - spr.w : x, top, { origin: 'topleft', alpha: 0.68 });
       return spr.h;
     };
     const lh = side(l, 6, false);

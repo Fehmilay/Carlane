@@ -22,7 +22,8 @@ export interface KanjiOpts {
   gap?: number;
 }
 
-const ASCII = /^[\x20-\x7e]+$/;
+// ASCII plus every accented letter the 5x7 pixel font can draw
+const ASCII = /^[\x20-\x7e\u00c4\u00d6\u00dc\u00df\u00e4\u00f6\u00fc\u00c9\u00e9\u00e8\u00ea\u00c7\u00e7\u011e\u011f\u0130\u0131\u015e\u015f\u00c1\u00e1\u00cd\u00ed\u00d3\u00f3\u00da\u00fa\u00d1\u00f1\u00c5\u00e5\u00c6\u00e6\u00d8\u00f8\u00d0\u00f0\u00de\u00fe\u0141\u0142\u010c\u010d\u00e0\u00e2\u00f4\u00fb\u00fd]+$/;
 const pixelFont = new PixelFont();
 
 /**

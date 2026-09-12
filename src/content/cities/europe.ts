@@ -771,17 +771,23 @@ const paris: SkylineFn = (r, p, tod, px, y, t, fog) => {
   clouds(r, y - 50, px * 0.3 + t * 2, mix(p.haze, tod === 'day' ? '#ffffff' : '#ffb0c8', 0.5), 6, 4, 14);
 
   // ── far: Montmartre with Sacré-Cœur, the Montparnasse slab
-  mountain(r, 48 + o0, y - 13, 150, 48, F);
+  mountain(r, 196 + o0, y - 13, 150, 48, F);
   {
-    const x = 48 + o0, hb = y - 50, st = mix(A('#efece0', 0.18), F, 0.15);
-    r.fillRect(x - 14, hb - 7, 29, 13, st);
-    dome(r, x - 10, hb - 7, 5, 7, st); dome(r, x + 10, hb - 7, 5, 7, st);
-    r.fillRect(x - 5, hb - 13, 11, 4, st);
-    dome(r, x, hb - 13, 7, 12, st);
-    r.fillRect(x, hb - 28, 1, 3, st);
+    const x = 194 + o0, hb = y - 50, st = mix(A('#efece0', 0.18), F, 0.12), sh = mix(st, '#000000', 0.22);
+    r.fillRect(x - 13, hb - 8, 27, 14, st);
+    r.fillRect(x - 13, hb + 5, 27, 1, sh);
+    for (let i = -10; i <= 10; i += 4) r.fillRect(x + i, hb - 5, 2, 9, sh);
+    dome(r, x - 10, hb - 8, 4, 7, st); dome(r, x + 10, hb - 8, 4, 7, st);
+    r.fillRect(x - 10, hb - 17, 1, 2, st); r.fillRect(x + 10, hb - 17, 1, 2, st);
+    r.fillRect(x - 5, hb - 14, 11, 6, st);
+    for (let i = -4; i <= 4; i += 3) r.fillRect(x + i, hb - 13, 1, 4, sh);
+    dome(r, x, hb - 14, 7, 13, st);
+    r.fillRect(x - 7, hb - 14, 15, 1, sh);
+    r.fillRect(x, hb - 30, 1, 4, st);
+    r.fillRect(x + 15, hb - 12, 5, 18, st); spire(r, x + 17, hb - 12, 5, 6, sh);
   }
   {
-    const x = 202 + o0;
+    const x = 18 + o0;
     block(r, x - 9, y - 13, 19, 44, F, gl, tod, 7, 0.5);
     r.fillRect(x - 9, y - 58, 19, 2, mix(F, '#000000', 0.25));
   }
@@ -808,7 +814,7 @@ const paris: SkylineFn = (r, p, tod, px, y, t, fog) => {
   }
   {
     // Arc de Triomphe
-    const x = 44 + o1, st = A('#e2dccc', 0.1);
+    const x = 56 + o1, st = A('#e2dccc', 0.1);
     r.fillRect(x - 15, B - 24, 31, 24, st);
     archRow(r, x - 15, B, 31, 24, 1, st, mix(st, '#000000', 0.62));
     r.fillRect(x - 17, B - 28, 35, 4, st);
@@ -817,7 +823,7 @@ const paris: SkylineFn = (r, p, tod, px, y, t, fog) => {
   }
   {
     // Eiffel Tower
-    const x = 134 + o1, ir = A('#8a6a4a', 0.06), h = 58;
+    const x = 138 + o1, ir = A('#8a6a4a', 0.06), h = 54;
     for (let j = 0; j < h; j++) {
       const f = j / h;
       const hw = Math.max(1, Math.round(2 + 15 * Math.pow(1 - f, 2.6)));
@@ -1104,7 +1110,8 @@ const amsterdam: SkylineFn = (r, p, tod, px, y, t, fog) => {
   {
     const wht = A('#f0ece0', 0), dy = y - 6;
     const open = 0.22 + 0.26 * (0.5 + 0.5 * Math.sin(t * 0.45));
-    r.fillRect(26 + o2, dy, 26, 3, wht); r.fillRect(120 + o2, dy, 26, 3, wht);
+    r.fillRect(22 + o2, dy, 32, 3, wht); r.fillRect(118 + o2, dy, 32, 3, wht);
+    r.fillRect(22 + o2, dy - 4, 32, 1, mix(wht, '#000000', 0.3)); r.fillRect(118 + o2, dy - 4, 32, 1, mix(wht, '#000000', 0.3));
     r.fillRect(26 + o2, dy + 3, 4, 6, mix(wht, '#000000', 0.4)); r.fillRect(142 + o2, dy + 3, 4, 6, mix(wht, '#000000', 0.4));
     for (let k = 0; k < 32; k++) {
       const lx = 52 + o2 + k, rx = 120 + o2 - k, dyy = Math.round(k * open);
@@ -1114,7 +1121,7 @@ const amsterdam: SkylineFn = (r, p, tod, px, y, t, fog) => {
       const x = bx + o2;
       r.fillRect(x - 4, dy - 26, 2, 26, wht); r.fillRect(x + 3, dy - 26, 2, 26, wht);
       r.fillRect(x - 5, dy - 28, 11, 2, wht);
-      line(r, x + (bx === 50 ? 4 : -3), dy - 25, x + (bx === 50 ? 30 : -29), dy - 2 - Math.round(28 * open), mix(wht, '#000000', 0.3));
+      line(r, x + (bx === 50 ? 4 : -3), dy - 24, x + (bx === 50 ? 20 : -19), dy - 2 - Math.round(17 * open), mix(wht, '#000000', 0.32));
       if (litc) r.fillRect(x - 1, dy - 31, 3, 3, gl);
     }
   }
@@ -1299,16 +1306,16 @@ const reykjavik: SkylineFn = (r, p, tod, px, y, t, fog) => {
   // ── far: Esja, flat-topped and snow-streaked
   const snow = isNight(tod) ? '#b4c0d4' : tod === 'dusk' ? '#ffd8d0' : '#f4f4f0';
   {
-    const sx = -44 + o0, base = y - 14, h = 24, sn = mix(snow, p.haze, 0.26 + fog * 0.3);
-    for (let k = 0; k < 24; k++) {
-      const hh = 2 + Math.round(h01(k, 9) * 7);
-      r.fillRect(sx + 2 + k * 7, base - h - hh, 8, hh + 4, F);
-      r.fillRect(sx + 2 + k * 7, base - h - hh, 8, 2, sn);
+    const cx = 46 + o0, base = y - 14, h = 32, rock = mix(F, '#0b0b12', 0.2), sn = mix(snow, p.haze, 0.2 + fog * 0.3);
+    for (let j = 0; j <= h; j++) {
+      const w = 40 + Math.round((j / h) * 82);
+      const jag = j === 0 ? 0 : 0;
+      r.fillRect(cx - w + jag, base - h + j, w * 2, 1, j < 7 ? sn : rock);
     }
-    r.fillRect(sx, base - h, 168, h, F);
-    for (let j = 0; j < 13; j++) { r.fillRect(sx - j * 3, base - 12 + j, 7, 1, F); r.fillRect(sx + 162 + j * 3, base - 12 + j, 7, 1, F); }
-    for (let k = 0; k < 16; k++) r.fillRect(sx + 8 + k * 10, base - h + 1, 3, 3 + (k % 3) * 4, mix(sn, F, 0.4));
-    for (let k = 0; k < 11; k++) r.fillRect(sx + 14 + k * 15, base - h + 3, 2, h - 5, mix(F, '#000000', 0.14));
+    for (let k = 0; k < 12; k++) { const dx = -38 + k * 7; r.fillRect(cx + dx, base - h - 1 - Math.round(h01(k, 4) * 3), 5, 4, sn); }
+    for (let k = 0; k < 5; k++) { const dx = -30 + k * 15; r.fillRect(cx + dx, base - h + 7, 2, 8 + (k % 3) * 4, mix(rock, '#000000', 0.25)); }
+    for (let k = 0; k < 6; k++) r.fillRect(cx - 34 + k * 13, base - h + 6, 4, 3 + (k % 2) * 3, mix(sn, rock, 0.45));
+    mountain(r, cx - 96 + o0 * 0, base, 90, 22, rock, sn, 0.2);
   }
   mountain(r, 198 + o0, y - 14, 120, 38, F, mix(snow, p.haze, 0.3), 0.3);
   mountain(r, 268 + o0, y - 14, 100, 28, F, mix(snow, p.haze, 0.3), 0.28);
@@ -1345,13 +1352,15 @@ const reykjavik: SkylineFn = (r, p, tod, px, y, t, fog) => {
     const rooves = [P.red, '#2a6ab0', P.gold, '#20a058', '#d04a30', '#8040b0'];
     let x = -64 + o1, i = 0;
     while (x < 304 + o1) {
-      const w = 11 + Math.round(h01(i, 81) * 6), h = 9 + Math.round(h01(i + 5, 81) * 10);
-      const wall = i % 3 === 0 ? A('#e8e4d8', 0.08) : A('#c8ccd0', 0.08);
+      const w = 10 + Math.round(h01(i, 81) * 9), h = 8 + Math.round(h01(i + 5, 81) * 15);
+      const wall = [A('#e8e4d8', 0.08), A('#c8ccd0', 0.08), A('#9aa4ac', 0.08), A('#d8cfc0', 0.08)][i % 4];
       r.fillRect(x, B - h, w, h, wall);
-      for (let k = 0; k < w; k += 2) r.fillRect(x + k, B - h, 1, h, mix(wall, '#000000', 0.12));
-      const rc = A(rooves[i % rooves.length], 0.03);
-      for (let j = 0; j < 4; j++) { const ins = Math.round(((3 - j) * (w / 2 - 1)) / 4); r.fillRect(x + ins, B - h - 4 + j, Math.max(1, w - ins * 2), 1, rc); }
-      if (litc) r.fillRect(x + 2, B - h + 3, 3, 3, gl);
+      for (let k = 0; k < w; k += 2) r.fillRect(x + k, B - h, 1, h, mix(wall, '#000000', 0.14));
+      const rc = A(rooves[(i * 5) % rooves.length], 0.03);
+      const rh = 3 + Math.round(h01(i + 2, 81) * 3);
+      for (let j = 0; j < rh; j++) { const ins = Math.round(((rh - 1 - j) * (w / 2 - 1)) / rh); r.fillRect(x + ins, B - h - rh + j, Math.max(1, w - ins * 2), 1, rc); }
+      r.fillRect(x - 1, B - h, w + 2, 1, mix(rc, '#000000', 0.3));
+      if (litc) { r.fillRect(x + 2, B - h + 3, 3, 3, gl); if (h > 14) r.fillRect(x + w - 5, B - h + 9, 3, 3, gl); }
       x += w + 1; i++;
     }
   }

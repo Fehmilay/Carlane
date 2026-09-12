@@ -1060,10 +1060,11 @@ function tankGrid(def: VehicleDef): Grid {
   g.rect(cx - 30, 26, 10, 4, 'd'); g.rect(cx + 20, 26, 10, 4, 'd');
   // barrel pointing down the lane (foreshortened) + muzzle brake
   const by = d.extra === 'cannonLong' ? 0 : 8;
-  g.trap(cx - 3, cx + 2, by + 3, cx - 5, cx + 4, 22, 'b');
-  g.vline(cx - 3, by + 3, 22, 'd'); g.vline(cx + 2, by + 3, 22, 'N');
-  g.rect(cx - 5, by, 10, 4, 'd'); g.box(cx - 5, by, 10, 4, 'k');
-  g.rect(cx - 3, by + 1, 6, 2, 'K');
+  g.trap(cx - 4, cx + 3, by + 4, cx - 7, cx + 6, 22, 'b');
+  g.vline(cx - 4, by + 4, 22, 'd'); g.vline(cx - 3, by + 4, 22, 'e');
+  g.vline(cx + 2, by + 4, 22, 'N'); g.vline(cx + 3, by + 4, 22, 'D');
+  g.rect(cx - 7, by, 14, 5, 'd'); g.box(cx - 7, by, 14, 5, 'k');
+  g.rect(cx - 4, by + 1, 8, 3, 'K'); g.hline(cx - 6, cx + 5, by + 1, 'e');
   g.rect(cx - 7, 20, 14, 5, 'b'); g.hline(cx - 7, cx + 6, 20, 'H'); g.hline(cx - 7, cx + 6, 24, 'k');
   // camo patches
   g.ellipse(cx - 24, 62, 8, 4, 'A'); g.ellipse(cx + 22, 84, 7, 3, 'A');
@@ -1308,7 +1309,7 @@ export function damagedSprite(spr: PixelSprite, level: number): PixelSprite {
   };
 
   // 1 ── scratches (bare metal streaks) + paint chips
-  for (let i = 0; i < 5 + lvl * 5; i++) {
+  for (let i = 0; i < 7 + lvl * 5; i++) {
     const p = pick();
     if (!p) continue;
     const len = 3 + Math.floor(rnd() * (2 + lvl * 2));
@@ -1316,12 +1317,11 @@ export function damagedSprite(spr: PixelSprite, level: number): PixelSprite {
     for (let k = 0; k < len; k++) {
       const x = p[0] + dx * k, y = p[1] + dy * ((k >> 1) | 0);
       if (!solid(x, y)) break;
-      if (k % 3 === 2) continue;
       const t = lumAt(x, y) > 120;
-      put(x, y, t ? 58 : 190, t ? 58 : 190, t ? 72 : 200);
+      put(x, y, t ? 58 : 186, t ? 58 : 186, t ? 72 : 196);
     }
   }
-  for (let i = 0; i < 4 + lvl * 6; i++) {
+  for (let i = 0; i < 6 + lvl * 6; i++) {
     const p = pick();
     if (!p) continue;
     const s = rnd() < 0.5 ? 1 : 2;
@@ -1394,23 +1394,23 @@ export function damagedSprite(spr: PixelSprite, level: number): PixelSprite {
       }
       for (let j = -r - 1; j <= r + 1; j++) for (let k = -r - 1; k <= r + 1; k++) dark(p[0] + k, p[1] + j, 0.3);
     }
-    // smash the lamps on one side (deterministic per sprite)
-    const side = (hashStr(spr.id) & 1) === 0 ? 0 : 1;
-    for (let y = Math.floor(h * 0.35); y < h; y++) {
-      for (let x = side === 0 ? 0 : w >> 1; x < (side === 0 ? w >> 1 : w); x++) {
-        if (!solid(x, y)) continue;
-        const i = idx(x, y);
-        if (d[i] > 140 && d[i] > d[i + 1] * 1.5 && d[i] > d[i + 2] * 1.4) {
-          if ((x * 7 + y * 3) % 5 === 0) put(x, y, 236, 236, 240);
-          else dark(x, y, 0.3);
-        }
-      }
+    // smash one lamp cluster: a localised shatter where the lights sit
+    const side = (hashStr(spr.id) & 1) === 0 ? -1 : 1;
+    const lx = Math.round(w / 2 + side * w * 0.29), ly = Math.round(h * 0.62);
+    const lr = Math.max(3, Math.round(w * 0.085));
+    for (let y = ly - lr; y <= ly + lr; y++) for (let x = lx - lr; x <= lx + lr; x++) {
+      const dx = x - lx, dy = (y - ly) * 1.3;
+      if (dx * dx + dy * dy > lr * lr) continue;
+      if (!solid(x, y)) continue;
+      if ((x * 7 + y * 5) % 7 === 0) put(x, y, 232, 232, 236);
+      else if ((x + y) % 3 === 0) { const i = idx(x, y); d[i + 3] = 0; }
+      else dark(x, y, 0.28);
     }
     // bent bumper: shove the bottom rows sideways
     for (let y = h - 6; y < h - 1; y++) {
       const off = y % 2 ? 1 : 2;
-      const from = side === 0 ? 1 : w - 2;
-      const step = side === 0 ? 1 : -1;
+      const from = side < 0 ? 1 : w - 2;
+      const step = side < 0 ? 1 : -1;
       for (let n = 0; n < Math.floor(w * 0.28); n++) {
         const x = from + step * n;
         const sxp = x + step * off;
