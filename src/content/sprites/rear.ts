@@ -95,12 +95,9 @@ function roundLamp(g: Grid, cx: number, cy: number, r: number): void {
   g.circle(cx, cy, r, 'k');
   if (r <= 2) { g.circle(cx, cy, r - 1, 'j'); return; }
   g.circle(cx, cy, r - 1, 'j');
-  g.circle(cx, cy, r - 2, 'L');
-  if (r >= 4) {
-    g.circle(cx, cy, r - 3, 'J');
-    g.px(cx, cy, 'L');
-  }
-  g.px(cx - r + 1, cy - r + 2, 'w');
+  g.circle(cx, cy, r - 3 < 1 ? 1 : r - 3, 'J');
+  if (r >= 5) { g.rect(cx - 1, cy - 1, 2, 2, 'L'); }
+  g.px(cx - r + 2, cy - r + 2, 'w');
 }
 /** Rectangular lamp cluster: red main + amber + white reverse segment. */
 function boxLamp(g: Grid, x: number, y: number, w: number, h: number, flip: boolean): void {
@@ -335,7 +332,7 @@ function paintBody(g: Grid, s: Spec): void {
   const hr = halfAt(s.prof, s.roofTop);
   g.hline(cx - hr + 1, cx + hr - 2, s.roofTop, 'H');
   // lower body gets darker toward the ground
-  for (let y = s.splitY + 1; y <= s.bot; y++) hlineOver(g, cx - 64, cx + 64, y, 'b', 'B');
+  for (let y = s.bot - 2; y <= s.bot; y++) hlineOver(g, cx - 64, cx + 64, y, 'b', 'B');
   hlineOver(g, cx - 64, cx + 64, s.bot, 'N', 'Bb');
 }
 
@@ -403,12 +400,14 @@ function paintDeck(g: Grid, s: Spec, def: VehicleDef): void {
   const hwB = halfAt(s.prof, s.belt);
   g.hline(cx - hwB + 1, cx + hwB - 2, s.belt, 'k');
   hlineOver(g, cx - hwB + 1, cx + hwB - 2, s.belt + 1, 'H', 'B');
-  hlineOver(g, cx - hwB + 2, cx + hwB - 3, s.belt + 2, 'h', 'B');
-  // shoulder crease running down the flanks
-  for (let y = s.belt + 2; y < s.lampCY; y++) {
+  // shoulder crease running a little way down the flanks
+  for (let y = s.belt + 2; y < Math.min(s.lampCY, s.belt + 7); y++) {
     const hw = halfAt(s.prof, y);
     over(g, cx - hw + 2, y, 'H', 'B'); over(g, cx + hw - 3, y, 'H', 'B');
   }
+  // boot-lid shut lines
+  const dhw = halfAt(s.prof, s.belt + 3);
+  for (let y = s.belt + 2; y < s.lampCY - 2; y++) { over(g, cx - dhw + 5, y, 'b', 'B'); over(g, cx + dhw - 6, y, 'b', 'B'); }
   if ((def.details ?? {}).extra === 'midengine') {
     for (let i = 0; i < 3; i++) g.rect(cx - 12, s.belt + 3 + i * 2, 24, 1, 'k');
   }
@@ -484,16 +483,13 @@ function plate(g: Grid, s: Spec, def: VehicleDef): void {
   g.hline(x, x + pw - 1, y + ph - 1, 'f');
   const marks = pw >= 22 ? 3 : 2;
   const top = ph >= 8 ? 3 : 2;
-  for (let i = 0; i < marks; i++) {
-    g.rect(x + 2 + i * 4, y + 1, 3, top - 1, 'K');
-    g.px(x + 3 + i * 4, y + 1, 'w');
-  }
-  g.rect(x + pw - 4, y + 1, 2, top - 1, 'K');
+  for (let i = 0; i < marks; i++) g.rect(x + 3 + i * 4, y + 1, 2, top - 1, 'K');
+  g.rect(x + pw - 5, y + 1, 3, top - 1, 'K');
   const num = plateNum(def);
-  const tx = x + Math.round((pw - textW(num)) / 2) + 2;
+  const tx = x + Math.round((pw - textW(num)) / 2) + 3;
   text(g, num, tx, y + top, 'K');
   g.px(tx - 3, y + top + 3, 'K');
-  g.px(tx - 5, y + top + 3, 'K');
+  g.px(tx - 6, y + top + 3, 'K');
 }
 
 function bumper(g: Grid, s: Spec, def: VehicleDef): void {
@@ -536,10 +532,10 @@ function mirrors(g: Grid, s: Spec): void {
   if (y <= 0) return;
   const hw = halfAt(s.prof, y);
   const cx = s.w >> 1;
-  for (const sx of [cx - hw - 3, cx + hw - 1]) {
-    g.rect(sx, y, 4, 3, 'b');
-    g.hline(sx, sx + 3, y, 'H');
-    g.px(sx + (sx < cx ? 0 : 3), y + 2, 'k');
+  for (const sx of [cx - hw - 3, cx + hw]) {
+    g.rect(sx, y, 3, 3, 'b');
+    g.px(sx + (sx < cx ? 0 : 2), y, 'H');
+    g.px(sx + (sx < cx ? 0 : 2), y + 2, 'k');
   }
 }
 

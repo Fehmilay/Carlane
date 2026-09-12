@@ -254,8 +254,8 @@ function roofPod(p: Pen, bw: number, bh: number, border: string, fill: string, k
 }
 /** Lit taxi roof sign with a tiny label. */
 function taxiSign(p: Pen, fill: string, label = 'TAXI', labelCol: string = P.black, border: string = P.black): void {
-  const bw = Math.max(12, Math.round(p.w * 0.26)) | 1;
-  const bh = Math.max(7, Math.round(p.h * 0.15));
+  const bw = Math.max(14, Math.round(p.w * 0.21)) | 1;      // roughly the size rear.ts gives `taxi` bodies
+  const bh = Math.max(7, Math.round(p.h * 0.1));
   const r = roofPod(p, bw, bh, border, fill, true);
   if (r.labelled) return;                                  // the body template already lettered it
   if (r.w >= label.length * 4 + 2 && r.h >= 7) p.textMid(label, r.x + r.w / 2, r.y + Math.round((r.h - 5) / 2), labelCol, 'in');

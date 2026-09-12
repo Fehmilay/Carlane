@@ -286,14 +286,17 @@ function snowfall(r: Renderer, y: number, t: number, n = 46, col = '#f4f4f0'): v
     r.fillRect(x, yy, 1, 1, col, 0.45 + h01(i, 7) * 0.5);
   }
 }
-/** Small boat / ferry with a funnel and a wake. */
+/** Ferry with a dark hull, white deckhouse, funnel and wake. */
 function boat(r: Renderer, x: number, y: number, col: string, accent: string, litc: boolean, glow: string, big = true): void {
-  const w = big ? 17 : 11;
-  r.fillRect(x, y - 3, w, 3, col);
-  r.fillRect(x + 1, y, w - 2, 1, mix(col, '#ffffff', 0.25));
-  r.fillRect(x + 2, y - 6, w - 6, 3, mix(col, '#ffffff', 0.3));
-  r.fillRect(x + Math.round(w / 2), y - 10, 2, 4, accent);
-  if (litc) { r.fillRect(x + 3, y - 5, 2, 1, glow); r.fillRect(x + 7, y - 5, 2, 1, glow); }
+  const w = big ? 22 : 14, hull = mix(col, '#000000', 0.55);
+  r.fillRect(x, y - 4, w, 4, hull);
+  r.fillRect(x - 1, y - 4, w + 2, 1, mix(col, '#ffffff', 0.1));
+  r.fillRect(x + 2, y - 8, w - 6, 4, col);
+  r.fillRect(x + 2, y - 9, w - 6, 1, mix(col, '#ffffff', 0.3));
+  r.fillRect(x + Math.round(w / 2) - 1, y - 13, 3, 5, accent);
+  r.fillRect(x + Math.round(w / 2) - 1, y - 13, 3, 1, mix(accent, '#000000', 0.4));
+  if (litc) for (let i = 3; i < w - 5; i += 4) r.fillRect(x + i, y - 7, 2, 2, glow);
+  for (let k = 1; k < 4; k++) r.fillRect(x - k * 5, y - 1, 4, 1, mix(hull, '#ffffff', 0.45), 0.7 - k * 0.15);
 }
 /** Seagull, wings flapping with t. */
 function gull(r: Renderer, x: number, y: number, t: number, col: string, i: number): void {
@@ -304,12 +307,34 @@ function gull(r: Renderer, x: number, y: number, t: number, col: string, i: numb
 }
 /** Rheinbahn-style tram silhouette. */
 function tram(r: Renderer, x: number, y: number, body: string, band: string, litc: boolean, glow: string): void {
-  r.fillRect(x, y - 10, 32, 10, body);
-  r.fillRect(x, y - 10, 32, 2, band);
-  r.fillRect(x + 2, y - 7, 28, 4, litc ? glow : mix(band, '#40e0f0', 0.4));
-  r.fillRect(x + 14, y - 16, 2, 6, mix(body, '#000000', 0.3));
-  r.fillRect(x + 8, y - 16, 15, 1, mix(body, '#000000', 0.3));
-  r.fillRect(x + 3, y, 5, 1, '#0b0b12'); r.fillRect(x + 23, y, 5, 1, '#0b0b12');
+  r.fillRect(x, y - 8, 26, 8, mix(body, '#000000', 0.15));
+  r.fillRect(x, y - 8, 26, 1, band);
+  r.fillRect(x + 2, y - 6, 22, 3, litc ? glow : mix(band, '#40e0f0', 0.45));
+  r.fillRect(x + 12, y - 13, 1, 5, mix(body, '#000000', 0.45));
+  r.fillRect(x + 7, y - 13, 11, 1, mix(body, '#000000', 0.45));
+  r.fillRect(x + 3, y, 4, 1, '#0b0b12'); r.fillRect(x + 19, y, 4, 1, '#0b0b12');
+}
+/** Suspension bridge with chunky twin-leg towers, main cables and hangers. */
+function suspension(r: Renderer, x0: number, x1: number, y: number, th: number, col: string, cable: string, litc: boolean, glow: string): void {
+  const span = x1 - x0, t0 = Math.round(x0 + span * 0.25), t1 = Math.round(x0 + span * 0.75);
+  r.fillRect(x0, y, span, 3, mix(col, '#000000', 0.25));
+  r.fillRect(x0, y - 1, span, 1, mix(col, '#ffffff', 0.3));
+  const cy = (x: number): number => {
+    if (x < t0) return y - Math.round(th * ((x - x0) / (t0 - x0)) * 0.92) - 2;
+    if (x > t1) return y - Math.round(th * ((x1 - x) / (x1 - t1)) * 0.92) - 2;
+    const u = Math.abs(x - (t0 + t1) / 2) / ((t1 - t0) / 2);
+    return y - Math.round(th * (0.16 + 0.76 * u * u)) - 2;
+  };
+  for (let x = x0; x <= x1; x++) { const c = cy(x); r.fillRect(x, c, 1, 2, cable); }
+  for (let x = x0 + 3; x <= x1; x += 6) { const c = cy(x) + 2; if (y - c > 1) r.fillRect(x, c, 1, y - c, mix(cable, '#000000', 0.2)); }
+  for (const tx of [t0, t1]) {
+    r.fillRect(tx - 7, y - th, 5, th + 3, col);
+    r.fillRect(tx + 3, y - th, 5, th + 3, col);
+    r.fillRect(tx - 7, y - th, 15, 3, col);
+    r.fillRect(tx - 7, y - Math.round(th * 0.55), 15, 2, col);
+    r.fillRect(tx - 7, y - th - 2, 15, 2, mix(col, '#ffffff', 0.2));
+    if (litc) { r.fillRect(tx - 6, y - th + 4, 3, 2, glow); r.fillRect(tx + 4, y - th + 4, 3, 2, glow); }
+  }
 }
 
 // neon sign sprites cached in a module-level Map (dimensions for the halo).
@@ -703,11 +728,10 @@ const istanbul: SkylineFn = (r, p, tod, px, y, t, fog) => {
 
   // ── near: the Bosphorus Bridge, ferries, gulls, cypresses
   {
-    const col = A('#545762', 0), cab = A('#9aa0ac', 0);
-    bridge(r, -68 + o2, 308 + o2, y - 9, 32, col, cab);
-    r.fillRect(-68 + o2, y - 9, 376, 1, mix(col, '#ffffff', 0.25));
-    if (litc) for (let x = -60 + o2; x < 300 + o2; x += 12) r.fillRect(x, y - 11, 2, 1, mix(gl, P.cyan, isNight(tod) ? 0.45 : 0.1));
-    beacon(r, 25 + o2, y - 42, t, tod, 0.3); beacon(r, 205 + o2, y - 42, t, tod, 1.7);
+    const col = A('#5c606c', 0), cab = A('#a6acb8', 0);
+    suspension(r, -68 + o2, 308 + o2, y - 10, 32, col, cab, litc, gl);
+    if (litc) for (let x = -60 + o2; x < 300 + o2; x += 10) r.fillRect(x, y - 12, 2, 1, mix(gl, P.cyan, isNight(tod) ? 0.45 : 0.1));
+    beacon(r, 26 + o2, y - 45, t, tod, 0.3); beacon(r, 216 + o2, y - 45, t, tod, 1.7);
   }
   for (let i = 0; i < 2; i++) {
     const bx = Math.round(((t * (7 + i * 4) + i * 150) % 320) - 40) + o2;
