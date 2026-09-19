@@ -1,9 +1,12 @@
-import { Game } from './core/Game';
+import { Game, zeigeFehler } from './core/Game';
 import { createIAP } from './services/IAP';
 import { BootScreen } from './ui/BootScreen';
 import './content/music';
 
 declare global { interface Window { game: Game } }
+
+window.addEventListener('error', (e) => zeigeFehler(e.error ?? e.message));
+window.addEventListener('unhandledrejection', (e) => zeigeFehler(e.reason));
 
 async function boot() {
   const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -22,6 +25,7 @@ async function boot() {
       await SplashScreen.hide().catch(() => {});
       const { App } = await import('@capacitor/app');
       App.addListener('backButton', () => { game.top?.onBack?.(); });
+      App.addListener('appStateChange', ({ isActive }) => { if (isActive) { game.paused = false; game.r.resize(); } });
     }
   } catch { /* web */ }
   const { openRoute } = await import('./ui/routes');
@@ -30,4 +34,4 @@ async function boot() {
   game.goto(new TitleScreen(game), false);
 }
 
-boot().catch((e) => { console.error(e); });
+boot().catch((e) => { zeigeFehler(e); });

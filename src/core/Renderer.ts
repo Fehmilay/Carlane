@@ -49,6 +49,9 @@ export class Renderer {
 
   constructor(display: HTMLCanvasElement) {
     this.display = display;
+    // env() insets can arrive a moment after the first layout on iOS.
+    window.setTimeout(() => this.resize(), 300);
+    window.setTimeout(() => this.resize(), 1200);
     this.dctx = display.getContext('2d', { alpha: false })!;
     this.buffer = makeCanvas(GAME_W, this.h);
     this.ctx = this.buffer.getContext('2d', { alpha: false })!;
@@ -74,13 +77,16 @@ export class Renderer {
     }
     this.ctx.imageSmoothingEnabled = false;
     this.dctx.imageSmoothingEnabled = false;
-    // safe areas from CSS env() (set in index.html)
-    const cs = getComputedStyle(document.documentElement);
-    const px = (v: string) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
-    this.safeTop = Math.round(px(cs.getPropertyValue('--sat')) / this.cssScale);
-    this.safeBottom = Math.round(px(cs.getPropertyValue('--sab')) / this.cssScale);
-    this.safeLeft = Math.round(px(cs.getPropertyValue('--sal')) / this.cssScale);
-    this.safeRight = Math.round(px(cs.getPropertyValue('--sar')) / this.cssScale);
+    // Safe areas. getPropertyValue('--sat') returns the declared TEXT
+    // "env(safe-area-inset-top, 0px)", never a number - custom properties are
+    // not resolved. parseFloat() of that is NaN, so every inset was 0 and the
+    // whole UI sat under the notch and the home indicator. A probe element with
+    // env() as padding IS resolved by the browser.
+    const inset = safeAreaInsets();
+    this.safeTop = Math.round(inset.top / this.cssScale);
+    this.safeBottom = Math.round(inset.bottom / this.cssScale);
+    this.safeLeft = Math.round(inset.left / this.cssScale);
+    this.safeRight = Math.round(inset.right / this.cssScale);
   }
 
   /** Convert CSS client coords → game coords. */
@@ -231,4 +237,36 @@ export class Renderer {
   clip(r: Rect): void { this.ctx.save(); this.ctx.beginPath(); this.ctx.rect(Math.round(r.x), Math.round(r.y), Math.round(r.w), Math.round(r.h)); this.ctx.clip(); }
   unclip(): void { this.ctx.restore(); }
   alpha(a: number): void { this.ctx.globalAlpha = a; }
+}
+
+let insetProbe: HTMLDivElement | null = null;
+
+/**
+ * Safe-area insets in CSS px, measured.
+ *
+ * On a notched iPhone inside Capacitor the env() values have been seen to
+ * come back as 0 (LagerNOW had the same). A game whose HUD then sits in the
+ * Dynamic Island is worse than one with a slightly generous margin, so on
+ * native iOS in portrait a minimum applies: 50 px top, 34 px bottom on tall
+ * (notch/home-indicator) screens, 20 px top on the old 16:9 ones.
+ */
+export function safeAreaInsets(): { top: number; bottom: number; left: number; right: number } {
+  if (!insetProbe) {
+    insetProbe = document.createElement('div');
+    insetProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;' +
+      'padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);' +
+      'padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);';
+    document.body.appendChild(insetProbe);
+  }
+  const cs = getComputedStyle(insetProbe);
+  const n = (v: string) => { const x = parseFloat(v); return Number.isFinite(x) ? x : 0; };
+  const out = { top: n(cs.paddingTop), bottom: n(cs.paddingBottom), left: n(cs.paddingLeft), right: n(cs.paddingRight) };
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean; getPlatform?: () => string } }).Capacitor;
+  const iosNative = !!cap?.isNativePlatform?.() && cap?.getPlatform?.() === 'ios';
+  if (iosNative && window.innerHeight > window.innerWidth) {
+    const tall = window.innerHeight / window.innerWidth > 2;
+    out.top = Math.max(out.top, tall ? 50 : 20);
+    out.bottom = Math.max(out.bottom, tall ? 34 : 0);
+  }
+  return out;
 }

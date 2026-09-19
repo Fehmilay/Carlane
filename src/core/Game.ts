@@ -80,19 +80,31 @@ export class Game {
     const loop = (now: number) => {
       if (!this.running) return;
       requestAnimationFrame(loop);
+      // "paused" came only from visibilitychange. If the "visible" event never
+      // arrives (seen with app launch in a WebView), the game stood still
+      // forever: frozen picture, taps started transitions that never ran.
+      // Visible now means running now.
+      if (this.paused && !document.hidden) { this.paused = false; this.last = now; this.audio.resume(); }
       if (this.paused) return;
       let dt = (now - this.last) / 1000;
       this.last = now;
       if (dt > 0.25) dt = 0.25;
       this.acc += dt;
       let steps = 0;
-      while (this.acc >= STEP && steps < 5) {
-        this.acc -= STEP;
-        this.update(STEP);
-        steps++;
+      try {
+        while (this.acc >= STEP && steps < 5) {
+          this.acc -= STEP;
+          this.update(STEP);
+          steps++;
+        }
+        if (steps === 5) this.acc = 0;
+        this.render(dt);
+      } catch (e) {
+        // One broken frame must not freeze the game silently - and on a
+        // phone nobody sees the console. Show it; the loop keeps going.
+        this.acc = 0;
+        zeigeFehler(e);
       }
-      if (steps === 5) this.acc = 0;
-      this.render(dt);
     };
     requestAnimationFrame(loop);
   }
@@ -123,4 +135,23 @@ export class Game {
     if (this.fade > 0) r.fillRect(0, 0, r.w, r.h, '#0b0b12', this.fade);
     r.end();
   }
+}
+
+let fehlerBox: HTMLDivElement | null = null;
+let letzterFehler = '';
+
+/** Shows an error on screen (native builds have no visible console). */
+export function zeigeFehler(e: unknown): void {
+  const text = e instanceof Error ? `${e.name}: ${e.message}\n${(e.stack ?? '').split('\n').slice(0, 4).join('\n')}` : String(e);
+  if (text === letzterFehler) return;
+  letzterFehler = text;
+  console.error(e);
+  if (!fehlerBox) {
+    fehlerBox = document.createElement('div');
+    fehlerBox.style.cssText = 'position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:9999;' +
+      'background:rgba(120,0,20,.9);color:#fff;font:11px/1.35 -apple-system,monospace;padding:8px;border-radius:6px;' +
+      'white-space:pre-wrap;pointer-events:none;max-height:40vh;overflow:hidden;';
+    document.body.appendChild(fehlerBox);
+  }
+  fehlerBox.textContent = 'CARLANE Fehler (bitte Screenshot):\n' + text;
 }
