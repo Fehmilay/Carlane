@@ -126,6 +126,6 @@ export async function createIAP(): Promise<IAPService> {
     if (cap.Capacitor.isNativePlatform()) return key ? new RevenueCatIAPService(key) : new NoStoreIAPService();
   } catch { /* web */ }
   // Im Browser den Zustand der App-Store-Fassung ohne Shop nachstellen: #nostore
-  if (/(^|[#&?])nostore($|[=&])/.test(location.hash + location.search)) return new NoStoreIAPService();
+  if (/(^|[#&?])nostore($|[=&?#])/.test(location.hash + location.search)) return new NoStoreIAPService();
   return new MockIAPService();
 }
