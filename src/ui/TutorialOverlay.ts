@@ -53,6 +53,12 @@ export class TutorialOverlay implements Screen {
     this.t += dt;
     // keep the world paused while a card is up (an overlay above us may have unfrozen it)
     if (this.phase === 'card' && this.step !== 'done') this.ps.world.frozen = true;
+    // The game only updates the TOP screen. While we wait for the player to
+    // swipe / boost / fire, the play screen underneath must keep running -
+    // otherwise the countdown never ends, the road stands still and the swipe
+    // that would advance this tutorial is never read. That was the first-run
+    // dead end on the device ("nothing moves, nothing reacts").
+    if (this.phase === 'wait' || this.step === 'done') this.ps.update(dt);
     this.skipBtn.update(dt);
     this.okBtn.update(dt);
     if (this.step === 'done' && this.t > 1.2) this.finish();
@@ -133,6 +139,9 @@ export class TutorialOverlay implements Screen {
   onPointer(ev: PointerEv): void {
     if (this.skipBtn.handle(ev, this.g)) return;
     if (this.phase === 'card' && this.okBtn.handle(ev, this.g)) return;
+    // Same reason as in update(): the ability and pause buttons live on the
+    // play screen, and the ability step waits for exactly that tap.
+    if (this.phase === 'wait' || this.step === 'done') this.ps.onPointer?.(ev);
   }
   onBack(): boolean { this.finish(); return true; }
 }
