@@ -74,6 +74,7 @@ export const STR: Record<string, LocalizedText> = {
   requiresLevel: { de: 'LEVEL {n} NÖTIG', en: 'NEEDS LEVEL {n}' },
   requiresStars: { de: '{n} STERNE NÖTIG', en: 'NEEDS {n} STARS' },
   premium: { de: 'PREMIUM', en: 'PREMIUM' },
+  comingSoon: { de: 'BALD VERFÜGBAR', en: 'COMING SOON' },
 };
 
 export function t(key: string, vars?: Record<string, string | number>): string {

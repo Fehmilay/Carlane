@@ -53,6 +53,7 @@ export class ResultsOverlay implements Screen {
     const w = Math.min(212, r.w - 16), x = (r.w - w) / 2;
     const y = this.panelY;
     this.buttons = [];
+    if (this.offering && !g.iap.available && g.save.data.revives <= 0) this.offering = false;
     if (this.offering) {
       const canRevive = g.save.data.revives > 0;
       this.buttons.push(new Button({ x: x + 12, y: y + 118, w: w - 24, h: 24 }, canRevive ? `${t('reviveCta')} (${g.save.data.revives})` : t('reviveBuy'), {

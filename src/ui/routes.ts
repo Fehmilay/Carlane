@@ -35,7 +35,7 @@ export async function openRoute(g: Game, hash: string): Promise<boolean> {
   switch (screen) {
     case 'garage': { const m = await import('./GarageScreen'); g.goto(new m.GarageScreen(g), false); return true; }
     case 'map': { const m = await import('./MapScreen'); g.goto(new m.MapScreen(g), false); return true; }
-    case 'shop': { const m = await import('./ShopScreen'); g.goto(new m.ShopScreen(g), false); return true; }
+    case 'shop': if (!g.iap.available) return false; { const m = await import('./ShopScreen'); g.goto(new m.ShopScreen(g), false); return true; }
     case 'settings': { const m = await import('./SettingsScreen'); g.goto(new m.SettingsScreen(g), false); return true; }
     case 'spritesheet': { const m = await import('./dev/SpriteSheetScreen'); g.goto(new m.SpriteSheetScreen(g, parseInt(q.get('page') ?? '0', 10) || 0, q.has('traffic'), q.has('all')), false); return true; }
     case 'skyline': { const m = await import('./dev/SkylineScreen'); g.goto(new m.SkylineScreen(g, q.get('city') ?? 'tokyo'), false); return true; }

@@ -55,7 +55,7 @@ export class MapScreen implements Screen {
   enter(): void { this.g.audio.playMusic(musicFor('garage')); }
   private buildTabs(): void {
     const r = this.g.r;
-    const labels = [t('garage'), t('map'), t('shop')];
+    const labels = this.g.iap.available ? [t('garage'), t('map'), t('shop')] : [t('garage'), t('map')];
     const acts = [() => void goGarage(this.g), () => {}, () => void goShop(this.g)];
     let x = 4;
     this.tabBtns = labels.map((lb, i) => {

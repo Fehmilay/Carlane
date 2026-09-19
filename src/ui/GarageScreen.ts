@@ -45,7 +45,8 @@ export class GarageScreen implements Screen {
   enter(): void { this.g.audio.playMusic(musicFor('garage')); }
   private buildTabs(): void {
     const r = this.g.r;
-    const labels = [t('garage'), t('map'), t('shop')];
+    const shop = this.g.iap.available;
+    const labels = shop ? [t('garage'), t('map'), t('shop')] : [t('garage'), t('map')];
     const acts = [() => {}, () => void goMap(this.g), () => void goShop(this.g)];
     let x = 4;
     this.tabBtns = labels.map((lb, i) => {
@@ -83,7 +84,9 @@ export class GarageScreen implements Screen {
       }));
       this.buttons.push(new Button({ x: 16 + bw - 56, y: by, w: 56, h: 20 }, t('drive'), { color: P.red, onTap: () => { g.save.select(v.id); void goMap(g); } }));
     } else if (v.unlock.type === 'iap') {
-      this.buttons.push(new Button({ x: 16, y: by, w: bw, h: 20 }, t('premium'), { color: P.purple, onTap: () => void goShop(g) }));
+      const b = new Button({ x: 16, y: by, w: bw, h: 20 }, g.iap.available ? t('premium') : t('comingSoon'), { color: P.purple, onTap: () => { if (g.iap.available) void goShop(g); } });
+      b.disabled = !g.iap.available;
+      this.buttons.push(b);
     } else if (c.ok) {
       this.buttons.push(new Button({ x: 16, y: by, w: bw, h: 20 }, `${t('unlock')}  ${c.cost}`, {
         color: P.yellow, onTap: () => { if (unlockVehicle(g, v)) { toast(t('unlocked'), P.yellow); this.buildDetailButtons(); } },
@@ -93,7 +96,7 @@ export class GarageScreen implements Screen {
         color: P.gray3,
         onTap: () => dialog(g, t('notEnough'), t('needCoins', { n: c.need }), [
           { label: t('cancel'), color: P.gray3, onTap: () => {} },
-          { label: t('toShop'), color: P.purple, onTap: () => void goShop(g) },
+          ...(g.iap.available ? [{ label: t('toShop'), color: P.purple, onTap: () => void goShop(g) }] : []),
         ]),
       }));
     } else {

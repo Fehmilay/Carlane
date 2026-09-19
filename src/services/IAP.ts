@@ -101,12 +101,31 @@ export class RevenueCatIAPService implements IAPService {
   }
 }
 
+/**
+ * No store at all: native build without a RevenueCat key.
+ *
+ * Before this existed, a native build without the key fell back to the mock
+ * store - and the mock "succeeds" every purchase for free. Shipped like that,
+ * every pack and every premium car would have been a free tap in the App
+ * Store build. Now the store is simply absent: every screen checks
+ * `g.iap.available` and hides its purchase entry points.
+ */
+export class NoStoreIAPService implements IAPService {
+  readonly available = false;
+  async init(): Promise<void> { /* nothing */ }
+  products(): StoreProduct[] { return []; }
+  async purchase(): Promise<PurchaseResult> { return { ok: false, reason: 'unavailable' }; }
+  async restore(): Promise<ProductId[]> { return []; }
+}
+
 /** Pick the right implementation at boot. */
 export async function createIAP(): Promise<IAPService> {
   const key = (import.meta as unknown as { env: Record<string, string | undefined> }).env?.VITE_REVENUECAT_IOS_KEY;
   try {
     const cap = await import('@capacitor/core');
-    if (cap.Capacitor.isNativePlatform() && key) return new RevenueCatIAPService(key);
+    if (cap.Capacitor.isNativePlatform()) return key ? new RevenueCatIAPService(key) : new NoStoreIAPService();
   } catch { /* web */ }
+  // Im Browser den Zustand der App-Store-Fassung ohne Shop nachstellen: #nostore
+  if (/(^|[#&?])nostore($|[=&])/.test(location.hash + location.search)) return new NoStoreIAPService();
   return new MockIAPService();
 }

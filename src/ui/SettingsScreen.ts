@@ -32,7 +32,7 @@ export class SettingsScreen implements Screen {
       onTap: () => { s.lang = l; setLang(l); g.save.save(); this.build(); },
     }));
     this.buttons = [
-      new Button({ x, y, w, h: 20 }, t('restore'), { color: P.blue, onTap: () => void this.doRestore() }),
+      ...(g.iap.available ? [new Button({ x, y, w, h: 20 }, t('restore'), { color: P.blue, onTap: () => void this.doRestore() })] : []),
       new Button({ x, y: y + 24, w, h: 20 }, t('resetTutorial'), { color: P.gray3, onTap: () => { g.save.data.tutorialsSeen = {}; g.save.save(); toast(t('ok'), P.green); } }),
       new Button({ x, y: y + 48, w, h: 20 }, t('resetProgress'), { color: P.redDark, onTap: () => dialog(g, t('resetProgress'), t('resetSure'), [
         { label: t('no'), color: P.gray3, onTap: () => {} },

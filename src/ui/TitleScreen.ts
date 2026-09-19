@@ -28,7 +28,9 @@ export class TitleScreen implements Screen {
     const r = this.g.r;
     const y = r.h - r.safeBottom - 34;
     const w = 57, gap = 2;
-    const total = w * 4 + gap * 3;
+    const shop = this.g.iap.available;
+    const n = shop ? 4 : 3;
+    const total = w * n + gap * (n - 1);
     const x0 = Math.round((r.w - total) / 2);
     // labels are centred; long words are trimmed so they never overflow the 57-px button
     const mk = (i: number, label: string, icon: string, color: string, fn: () => void) =>
@@ -36,8 +38,8 @@ export class TitleScreen implements Screen {
     this.buttons = [
       mk(0, t('garage'), 'car', P.blue, () => void goGarage(this.g)),
       mk(1, t('play'), 'play', P.red, () => void goMap(this.g)),
-      mk(2, t('shop'), 'bag', P.purple, () => void goShop(this.g)),
-      mk(3, t('settings'), 'gear', P.gray3, () => void goSettings(this.g)),
+      ...(shop ? [mk(2, t('shop'), 'bag', P.purple, () => void goShop(this.g))] : []),
+      mk(shop ? 3 : 2, t('settings'), 'gear', P.gray3, () => void goSettings(this.g)),
     ];
   }
   enter(): void { this.g.audio.playMusic(musicFor('title')); }
